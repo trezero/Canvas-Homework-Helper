@@ -1,0 +1,122 @@
+You are an expert product designer and full‑stack engineer.
+Design and scaffold a responsive student achievement dashboard web app based on the following UI mockups and requirements.
+
+High‑level goal
+
+Build a web app where a student can connect their Canvas LMS account, pull assignments and grades, and see a dashboard like the attached screenshots:
+
+A “User Settings” modal with Canvas integration fields.
+
+A main dashboard showing metrics (completion rate, streak, total tasks, current standing), upcoming deadlines, priority focus, and semester progress.
+
+Core features
+
+Authentication and profile
+
+Simple email/password login for a single student user.
+
+User profile fields: full name, email address, school affiliation.
+
+Store user data in a backend (you choose Firestore, Supabase, or a simple Node/Express + Postgres stack; pick one and implement basic models).
+
+Canvas integration
+
+In “User Settings”, allow user to enter:
+
+Canvas base URL (e.g. https://pasadena.instructure.com)
+
+Canvas API token (stored securely, not exposed in frontend code).
+
+Provide a “Connect / Update Records” action that calls Canvas REST APIs to:
+
+Fetch current courses.
+
+Fetch assignments with due dates, status, and grades for the current term.
+
+Create a minimal server‑side integration layer that:
+
+Accepts the user’s Canvas base URL and token.
+
+Makes authenticated requests to Canvas.
+
+Normalizes assignments into our own Assignment model.
+
+Dashboard data model and logic
+
+Assignment fields: course name, subject, status (overdue, priority, in progress, pending, completed), due date, weight/percentage, and notes.
+
+Compute and display:
+
+Completion rate (%) for this semester.
+
+On‑time streak in days.
+
+Total tasks done.
+
+Current standing (e.g., “Honors List – Top 5% of cohort”), computed from GPA or overall grade if available; otherwise, show an estimated standing.
+
+Identify 3 “Priority Focus” items based on urgency and weight (overdue first, then high‑weight upcoming).
+
+Track semester progress as a percentage, based on time elapsed between term start and end, or estimated from assignments completed.
+
+UI and UX requirements
+
+Tech stack: modern React (or Next.js) frontend with TypeScript.
+
+Use a dark theme similar to the mockups, with a glassy/modern dashboard feel.
+
+Main dashboard sections:
+
+Top summary cards: Completion Rate, On‑time Streak, Total Tasks Done, Current Standing.
+
+Global search bar for assignments, topics, or faculty.
+
+Upcoming Deadlines table with sortable columns and status pills.
+
+Priority Focus panel listing:
+
+Critical Action
+
+Standard Task
+
+Coming Up
+
+Academic Milestone card with a progress bar for Semester Progress.
+
+Include a “User Settings” modal accessible via an icon/button, matching the structure in the screenshot: profile info at top, Canvas integration fields below, Save / Cancel actions.
+
+Implementation details
+
+Generate:
+
+Frontend components, pages, and routing.
+
+Backend API endpoints for: authentication, Canvas connection, assignments sync, and metrics computation.
+
+Data models and basic persistence layer.
+
+Provide example .env configuration and explain where to put the Canvas API token and base URL.
+
+Include mock data and a “demo mode” so the dashboard works without a real Canvas token, but make the Canvas integration code real and ready to plug in.
+
+Add simple error handling and loading states for when Canvas sync is running.
+
+Deliverables
+
+Proposed architecture overview (frontend, backend, database).
+
+Generated code skeletons for the key components and APIs.
+
+Example React/Next.js pages for:
+
+Dashboard
+
+User Settings / Profile
+
+Login
+
+Example API route code that calls Canvas and returns normalized assignments.
+
+Instructions for running the project locally (npm scripts, env variables, and any build steps).
+
+Use clear file and folder names and comment the critical integration points so an engineer can easily extend this into a production‑ready app.
