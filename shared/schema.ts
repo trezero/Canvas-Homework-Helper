@@ -13,6 +13,10 @@ export const users = pgTable("users", {
   canvasBaseUrl: text("canvas_base_url"),
   canvasApiToken: text("canvas_api_token"),
   canvasConnected: boolean("canvas_connected").notNull().default(false),
+  accountType: text("account_type").notNull().default("student"),
+  observedStudentId: text("observed_student_id"),
+  observedStudentName: text("observed_student_name"),
+  canvasUserId: text("canvas_user_id"),
 });
 
 export const assignments = pgTable("assignments", {
@@ -27,6 +31,11 @@ export const assignments = pgTable("assignments", {
   completed: boolean("completed").notNull().default(false),
   canvasAssignmentId: text("canvas_assignment_id"),
   grade: real("grade"),
+  pointsPossible: real("points_possible"),
+  score: real("score"),
+  submittedAt: text("submitted_at"),
+  gradedAt: text("graded_at"),
+  courseId: text("course_id"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -72,4 +81,20 @@ export type PriorityItem = {
   label: string;
   title: string;
   description: string;
+};
+
+export type CanvasObservee = {
+  id: number;
+  name: string;
+  sortable_name: string;
+  short_name: string;
+};
+
+export type CanvasSyncResult = {
+  success: boolean;
+  message: string;
+  accountType: "student" | "observer";
+  coursesCount: number;
+  assignmentsCount: number;
+  observees?: CanvasObservee[];
 };

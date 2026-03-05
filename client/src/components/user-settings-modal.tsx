@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { User } from "@shared/schema";
+import type { User, CanvasObservee } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -12,13 +12,41 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { User as UserIcon, Sparkles, Eye, EyeOff, HelpCircle } from "lucide-react";
+import {
+  User as UserIcon,
+  Sparkles,
+  Eye,
+  EyeOff,
+  HelpCircle,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Users,
+} from "lucide-react";
+
+type UserLike = User & { hasCanvasToken?: boolean };
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: User | undefined;
+  user: UserLike | undefined;
+};
+
+type TestResult = {
+  success: boolean;
+  canvasUser?: { id: string; name: string; email: string | null };
+  accountType?: "student" | "observer";
+  observees?: CanvasObservee[];
+  message?: string;
 };
 
 export function UserSettingsModal({ open, onOpenChange, user }: Props) {
@@ -29,6 +57,8 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
   const [canvasBaseUrl, setCanvasBaseUrl] = useState("");
   const [canvasApiToken, setCanvasApiToken] = useState("");
   const [showToken, setShowToken] = useState(false);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [showTokenHelp, setShowTokenHelp] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -37,18 +67,52 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
       setSchoolAffiliation(user.schoolAffiliation || "");
       setCanvasBaseUrl(user.canvasBaseUrl || "");
       setCanvasApiToken(user.canvasApiToken || "");
+      setTestResult(null);
     }
   }, [user]);
 
+  const testMutation = useMutation({
+    mutationFn: async () => {
+      const token = canvasApiToken === "••••••••••••••••" ? "" : canvasApiToken;
+      if (!token) {
+        throw new Error("Please enter a new Canvas API token to test the connection.");
+      }
+      const res = await apiRequest("POST", "/api/canvas/test", {
+        canvasBaseUrl,
+        canvasApiToken: token,
+      });
+      return res.json() as Promise<TestResult>;
+    },
+    onSuccess: (data) => {
+      setTestResult(data);
+      if (data.success) {
+        toast({
+          title: "Connection successful",
+          description: `Connected as ${data.canvasUser?.name} (${data.accountType} account)`,
+        });
+      }
+    },
+    onError: (err: Error) => {
+      setTestResult({ success: false, message: err.message });
+      toast({ title: "Connection failed", description: err.message, variant: "destructive" });
+    },
+  });
+
   const saveMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("PATCH", "/api/user", {
+      const payload: Record<string, any> = {
         fullName,
         email,
         schoolAffiliation,
         canvasBaseUrl,
-        canvasApiToken,
-      });
+      };
+      if (canvasApiToken && canvasApiToken !== "••••••••••••••••") {
+        payload.canvasApiToken = canvasApiToken;
+      }
+      if (testResult?.accountType) {
+        payload.accountType = testResult.accountType;
+      }
+      await apiRequest("PATCH", "/api/user", payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
@@ -69,9 +133,13 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
         .slice(0, 2)
     : "S";
 
+  const isConnected = user?.canvasConnected;
+  const accountType = testResult?.accountType || user?.accountType || "student";
+  const tokenChanged = canvasApiToken !== "••••••••••••••••" && canvasApiToken !== "";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] bg-card border-card-border p-0">
+      <DialogContent className="sm:max-w-[560px] bg-card border-card-border p-0 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="px-6 pt-6 pb-0">
           <DialogTitle className="text-xl font-semibold">User Settings</DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
@@ -140,12 +208,24 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
                   Canvas Integration
                 </span>
               </div>
-              {user?.canvasConnected && (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  CONNECTED
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {isConnected && (
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    CONNECTED
+                  </span>
+                )}
+                {accountType === "observer" && (
+                  <Badge variant="outline" className="text-[10px] bg-purple-500/10 text-purple-400 border-purple-500/20 no-default-active-elevate">
+                    OBSERVER
+                  </Badge>
+                )}
+                {accountType === "student" && isConnected && (
+                  <Badge variant="outline" className="text-[10px] bg-blue-500/10 text-blue-400 border-blue-500/20 no-default-active-elevate">
+                    STUDENT
+                  </Badge>
+                )}
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -171,8 +251,8 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
                   </Label>
                   <button
                     className="text-xs text-blue-400 font-medium"
-                    onClick={() => setShowToken((v) => !v)}
-                    data-testid="button-toggle-token"
+                    onClick={() => setShowTokenHelp((v) => !v)}
+                    data-testid="button-toggle-token-help"
                   >
                     HOW TO FIND YOUR TOKEN?
                   </button>
@@ -181,7 +261,10 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
                   <Input
                     type={showToken ? "text" : "password"}
                     value={canvasApiToken}
-                    onChange={(e) => setCanvasApiToken(e.target.value)}
+                    onChange={(e) => {
+                      setCanvasApiToken(e.target.value);
+                      setTestResult(null);
+                    }}
                     placeholder="Enter your Canvas API token"
                     className="bg-background/50 pr-10"
                     data-testid="input-canvas-token"
@@ -196,8 +279,119 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
                   </button>
                 </div>
               </div>
+
+              {showTokenHelp && (
+                <div className="rounded-md bg-background/50 p-3 text-xs text-muted-foreground space-y-2 border border-border/50">
+                  <p className="font-medium text-foreground">How to generate a Canvas API token:</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>Log into your Canvas account</li>
+                    <li>Go to Account &gt; Settings</li>
+                    <li>Scroll to "Approved Integrations"</li>
+                    <li>Click "+ New Access Token"</li>
+                    <li>Give it a purpose (e.g. "Dashboard") and click "Generate Token"</li>
+                    <li>Copy the token and paste it here</li>
+                  </ol>
+                  <p className="text-amber-400/80">
+                    Your token is stored securely and never exposed in the frontend.
+                  </p>
+                </div>
+              )}
+
+              {canvasBaseUrl && tokenChanged && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => testMutation.mutate()}
+                  disabled={testMutation.isPending}
+                  className="w-full"
+                  data-testid="button-test-connection"
+                >
+                  {testMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                      Testing Connection...
+                    </>
+                  ) : (
+                    "Test Connection"
+                  )}
+                </Button>
+              )}
+
+              {testResult && (
+                <div
+                  className={`rounded-md p-3 text-xs space-y-2 border ${
+                    testResult.success
+                      ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
+                      : "bg-red-500/5 border-red-500/20 text-red-400"
+                  }`}
+                  data-testid="text-test-result"
+                >
+                  <div className="flex items-center gap-2">
+                    {testResult.success ? (
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    )}
+                    <span className="font-medium">
+                      {testResult.success
+                        ? `Connected as ${testResult.canvasUser?.name}`
+                        : "Connection failed"}
+                    </span>
+                  </div>
+                  {testResult.success && (
+                    <div className="ml-6 space-y-1 text-muted-foreground">
+                      <p>
+                        Account type:{" "}
+                        <span className="text-foreground font-medium capitalize">
+                          {testResult.accountType}
+                        </span>
+                      </p>
+                      {testResult.canvasUser?.email && (
+                        <p>Email: {testResult.canvasUser.email}</p>
+                      )}
+                      {testResult.accountType === "observer" &&
+                        testResult.observees &&
+                        testResult.observees.length > 0 && (
+                          <div className="mt-2">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <Users className="w-3.5 h-3.5 text-purple-400" />
+                              <span className="text-purple-400 font-medium">
+                                Linked Students ({testResult.observees.length})
+                              </span>
+                            </div>
+                            <ul className="ml-5 space-y-0.5">
+                              {testResult.observees.map((o) => (
+                                <li key={o.id}>{o.name}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                    </div>
+                  )}
+                  {!testResult.success && testResult.message && (
+                    <p className="ml-6">{testResult.message}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+
+          {accountType === "observer" && isConnected && user?.observedStudentName && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-semibold tracking-widest uppercase text-purple-400">
+                  Viewing Student
+                </span>
+              </div>
+              <div className="rounded-md bg-background/50 p-3 border border-border/50">
+                <p className="text-sm font-medium">{user.observedStudentName}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Use "Update Records" on the dashboard to switch students or refresh data.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center justify-end gap-3 pt-2">
             <Button variant="ghost" onClick={() => onOpenChange(false)} data-testid="button-cancel-settings">
