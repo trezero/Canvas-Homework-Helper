@@ -208,10 +208,12 @@ export async function registerRoutes(
       const self = await client.getSelf();
       const accountType = await client.detectAccountType();
 
+      const canvasName = self.name || self.short_name || null;
       await storage.updateUser(user.id, {
         canvasUserId: String(self.id),
         accountType,
         canvasConnected: true,
+        ...(canvasName ? { fullName: canvasName } : {}),
       });
 
       let targetStudentId: string | undefined;

@@ -122,9 +122,10 @@ export default function Dashboard() {
   }
 
   const isObserver = user?.accountType === "observer";
-  const displayName = isObserver && user?.observedStudentName
-    ? user.observedStudentName
-    : user?.fullName || "Student";
+  const firstName = (name: string) => name.split(" ")[0];
+  const greetingName = isObserver
+    ? firstName(user?.fullName || "Parent")
+    : firstName(user?.fullName || "Student");
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
@@ -134,7 +135,7 @@ export default function Dashboard() {
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight" data-testid="text-greeting">
               {greeting()},{" "}
               <span className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
-                {isObserver ? user?.fullName || "Parent" : displayName}
+                {greetingName}
               </span>
             </h1>
             {isObserver && user?.observedStudentName ? (
