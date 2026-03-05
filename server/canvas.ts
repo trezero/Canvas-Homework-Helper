@@ -95,23 +95,11 @@ export class CanvasClient {
     });
   }
 
-  async getCoursesForStudent(studentId: string): Promise<any[]> {
-    return this.requestPaginated("/courses", {
-      "enrollment_state": "active",
-      "include[]": "total_scores",
-      "as_user_id": studentId,
-    });
-  }
-
-  async getAssignmentsForCourse(courseId: string, studentId?: string): Promise<any[]> {
-    const params: Record<string, string> = {
+  async getAssignmentsForCourse(courseId: string): Promise<any[]> {
+    return this.requestPaginated(`/courses/${courseId}/assignments`, {
       "order_by": "due_at",
       "include[]": "submission",
-    };
-    if (studentId) {
-      params["as_user_id"] = studentId;
-    }
-    return this.requestPaginated(`/courses/${courseId}/assignments`, params);
+    });
   }
 
   async getSubmissionsForStudent(courseId: string, studentId: string): Promise<any[]> {
@@ -151,13 +139,7 @@ export class CanvasClient {
     coursesCount: number;
     currentGrade: number | null;
   }> {
-    let courses: any[];
-
-    if (targetStudentId) {
-      courses = await this.getCoursesForStudent(targetStudentId);
-    } else {
-      courses = await this.getCourses();
-    }
+    const courses = await this.getCourses();
 
     const validCourses = courses.filter(
       (c: any) => c.id && c.name && c.workflow_state !== "deleted"
@@ -169,92 +151,84 @@ export class CanvasClient {
 
     for (const course of validCourses) {
       try {
-        let canvasAssignments: any[];
-
         if (targetStudentId) {
-          canvasAssignments = await this.getAssignmentsForCourse(
+          const submissions = await this.getSubmissionsForStudent(
             String(course.id),
             targetStudentId
           );
+
+          for (const sub of submissions) {
+            const ca = sub.assignment;
+            if (!ca || !ca.name) continue;
+
+            const dueAt = ca.due_at ? new Date(ca.due_at) : null;
+            const now = new Date();
+
+            const { status, completed, score, submittedAt, gradedAt } =
+              this.deriveStatus(sub, dueAt, now);
+
+            allAssignments.push({
+              userId,
+              courseName: ca.name,
+              subject: course.name || "Unknown Course",
+              status,
+              dueDate: dueAt ? formatDueDate(dueAt) : "No date",
+              weight: ca.points_possible ? Number(ca.points_possible) : 0,
+              completed,
+              canvasAssignmentId: String(ca.id),
+              grade: score,
+              pointsPossible: ca.points_possible ? Number(ca.points_possible) : null,
+              score,
+              submittedAt,
+              gradedAt,
+              courseId: String(course.id),
+              notes: null,
+            });
+
+            if (sub.score != null && ca.points_possible) {
+              totalGradePoints += (Number(sub.score) / Number(ca.points_possible)) * 100;
+              totalGradeCount++;
+            }
+          }
         } else {
-          canvasAssignments = await this.getAssignmentsForCourse(String(course.id));
-        }
+          const canvasAssignments = await this.getAssignmentsForCourse(String(course.id));
 
-        const courseEnrollments = course.enrollments || [];
-        for (const enrollment of courseEnrollments) {
-          if (enrollment.computed_current_score != null) {
-            totalGradePoints += enrollment.computed_current_score;
-            totalGradeCount++;
-          }
-        }
-
-        for (const ca of canvasAssignments) {
-          if (!ca.name) continue;
-
-          const submission = ca.submission;
-          const dueAt = ca.due_at ? new Date(ca.due_at) : null;
-          const now = new Date();
-
-          let status = "pending";
-          let completed = false;
-          let score: number | null = null;
-          let submittedAt: string | null = null;
-          let gradedAt: string | null = null;
-
-          if (submission) {
-            score = submission.score != null ? Number(submission.score) : null;
-            submittedAt = submission.submitted_at || null;
-            gradedAt = submission.graded_at || null;
-
-            if (submission.workflow_state === "graded" && submission.score != null) {
-              completed = true;
-              status = "completed";
-            } else if (submission.submitted_at) {
-              completed = true;
-              status = "completed";
-            } else if (
-              dueAt &&
-              dueAt < now &&
-              submission.workflow_state !== "submitted"
-            ) {
-              status = "overdue";
-            } else if (submission.workflow_state === "submitted") {
-              status = "in progress";
-              completed = true;
-            }
-          } else if (dueAt && dueAt < now) {
-            status = "overdue";
-          }
-
-          if (status === "pending" && dueAt) {
-            const daysUntilDue =
-              (dueAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-            if (daysUntilDue <= 3 && daysUntilDue > 0) {
-              status = "priority";
+          const courseEnrollments = course.enrollments || [];
+          for (const enrollment of courseEnrollments) {
+            if (enrollment.computed_current_score != null) {
+              totalGradePoints += enrollment.computed_current_score;
+              totalGradeCount++;
             }
           }
 
-          const dueDate = dueAt
-            ? formatDueDate(dueAt)
-            : "No date";
+          for (const ca of canvasAssignments) {
+            if (!ca.name) continue;
 
-          allAssignments.push({
-            userId,
-            courseName: ca.name,
-            subject: course.name || "Unknown Course",
-            status,
-            dueDate,
-            weight: ca.points_possible ? Number(ca.points_possible) : 0,
-            completed,
-            canvasAssignmentId: String(ca.id),
-            grade: score,
-            pointsPossible: ca.points_possible ? Number(ca.points_possible) : null,
-            score,
-            submittedAt,
-            gradedAt,
-            courseId: String(course.id),
-            notes: null,
-          });
+            const submission = ca.submission;
+            const dueAt = ca.due_at ? new Date(ca.due_at) : null;
+            const now = new Date();
+
+            const { status, completed, score, submittedAt, gradedAt } =
+              this.deriveStatus(submission, dueAt, now);
+
+            allAssignments.push({
+              userId,
+              courseName: ca.name,
+              subject: course.name || "Unknown Course",
+              status,
+              dueDate: dueAt ? formatDueDate(dueAt) : "No date",
+              weight: ca.points_possible ? Number(ca.points_possible) : 0,
+              completed,
+              canvasAssignmentId: String(ca.id),
+              grade: score,
+              pointsPossible: ca.points_possible ? Number(ca.points_possible) : null,
+              score,
+              submittedAt,
+              gradedAt,
+              courseId: String(course.id),
+              notes: null,
+            });
+          }
         }
       } catch {
         continue;
@@ -271,6 +245,59 @@ export class CanvasClient {
       coursesCount: validCourses.length,
       currentGrade,
     };
+  }
+
+  private deriveStatus(
+    submission: any,
+    dueAt: Date | null,
+    now: Date
+  ): {
+    status: string;
+    completed: boolean;
+    score: number | null;
+    submittedAt: string | null;
+    gradedAt: string | null;
+  } {
+    let status = "pending";
+    let completed = false;
+    let score: number | null = null;
+    let submittedAt: string | null = null;
+    let gradedAt: string | null = null;
+
+    if (submission) {
+      score = submission.score != null ? Number(submission.score) : null;
+      submittedAt = submission.submitted_at || null;
+      gradedAt = submission.graded_at || null;
+
+      if (submission.workflow_state === "graded" && submission.score != null) {
+        completed = true;
+        status = "completed";
+      } else if (submission.submitted_at) {
+        completed = true;
+        status = "completed";
+      } else if (
+        dueAt &&
+        dueAt < now &&
+        submission.workflow_state !== "submitted"
+      ) {
+        status = "overdue";
+      } else if (submission.workflow_state === "submitted") {
+        status = "in progress";
+        completed = true;
+      }
+    } else if (dueAt && dueAt < now) {
+      status = "overdue";
+    }
+
+    if (status === "pending" && dueAt) {
+      const daysUntilDue =
+        (dueAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysUntilDue <= 3 && daysUntilDue > 0) {
+        status = "priority";
+      }
+    }
+
+    return { status, completed, score, submittedAt, gradedAt };
   }
 }
 
