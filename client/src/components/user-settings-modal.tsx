@@ -150,8 +150,8 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
         <div className="px-6 pb-6 space-y-6 mt-4">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <UserIcon className="w-4 h-4 text-blue-400" />
-              <span className="text-xs font-semibold tracking-widest uppercase text-blue-400">
+              <UserIcon className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+              <span className="text-xs font-semibold tracking-widest uppercase text-blue-500 dark:text-blue-400">
                 Profile Settings
               </span>
             </div>
@@ -203,25 +203,25 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
           <div>
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-400" />
-                <span className="text-xs font-semibold tracking-widest uppercase text-blue-400">
+                <Sparkles className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                <span className="text-xs font-semibold tracking-widest uppercase text-blue-500 dark:text-blue-400">
                   Canvas Integration
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 {isConnected && (
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
                     CONNECTED
                   </span>
                 )}
                 {accountType === "observer" && (
-                  <Badge variant="outline" className="text-[10px] bg-purple-500/10 text-purple-400 border-purple-500/20 no-default-active-elevate">
+                  <Badge variant="outline" className="text-[10px] bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 no-default-active-elevate">
                     OBSERVER
                   </Badge>
                 )}
                 {accountType === "student" && isConnected && (
-                  <Badge variant="outline" className="text-[10px] bg-blue-500/10 text-blue-400 border-blue-500/20 no-default-active-elevate">
+                  <Badge variant="outline" className="text-[10px] bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 no-default-active-elevate">
                     STUDENT
                   </Badge>
                 )}
@@ -250,7 +250,7 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
                     Canvas API Token
                   </Label>
                   <button
-                    className="text-xs text-blue-400 font-medium"
+                    className="text-xs text-blue-600 dark:text-blue-400 font-medium"
                     onClick={() => setShowTokenHelp((v) => !v)}
                     data-testid="button-toggle-token-help"
                   >
@@ -291,7 +291,7 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
                     <li>Give it a purpose (e.g. "Dashboard") and click "Generate Token"</li>
                     <li>Copy the token and paste it here</li>
                   </ol>
-                  <p className="text-amber-400/80">
+                  <p className="text-amber-600 dark:text-amber-400/80">
                     Your token is stored securely and never exposed in the frontend.
                   </p>
                 </div>
@@ -321,8 +321,8 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
                 <div
                   className={`rounded-md p-3 text-xs space-y-2 border ${
                     testResult.success
-                      ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
-                      : "bg-red-500/5 border-red-500/20 text-red-400"
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-500/5 dark:border-emerald-500/20 dark:text-emerald-400"
+                      : "bg-red-50 border-red-200 text-red-700 dark:bg-red-500/5 dark:border-red-500/20 dark:text-red-400"
                   }`}
                   data-testid="text-test-result"
                 >
@@ -354,8 +354,8 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
                         testResult.observees.length > 0 && (
                           <div className="mt-2">
                             <div className="flex items-center gap-1.5 mb-1">
-                              <Users className="w-3.5 h-3.5 text-purple-400" />
-                              <span className="text-purple-400 font-medium">
+                              <Users className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                              <span className="text-purple-600 dark:text-purple-400 font-medium">
                                 Linked Students ({testResult.observees.length})
                               </span>
                             </div>
@@ -379,8 +379,8 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
           {accountType === "observer" && isConnected && user?.observedStudentName && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Users className="w-4 h-4 text-purple-400" />
-                <span className="text-xs font-semibold tracking-widest uppercase text-purple-400">
+                <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <span className="text-xs font-semibold tracking-widest uppercase text-purple-600 dark:text-purple-400">
                   Viewing Student
                 </span>
               </div>

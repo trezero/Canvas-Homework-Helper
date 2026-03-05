@@ -9,6 +9,7 @@ import { SemesterProgress } from "@/components/semester-progress";
 import { UserSettingsModal } from "@/components/user-settings-modal";
 import { ObserverStudentPicker } from "@/components/observer-student-picker";
 import { SearchBar } from "@/components/search-bar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Settings, Users } from "lucide-react";
@@ -126,19 +127,19 @@ export default function Dashboard() {
     : user?.fullName || "Student";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background transition-colors duration-300">
       <div className="max-w-[1200px] mx-auto px-6 py-8">
         <header className="flex items-start justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight" data-testid="text-greeting">
               {greeting()},{" "}
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
                 {isObserver ? user?.fullName || "Parent" : displayName}
               </span>
             </h1>
             {isObserver && user?.observedStudentName ? (
               <p className="text-muted-foreground mt-1 text-sm flex items-center gap-2" data-testid="text-subtitle">
-                <Users className="w-3.5 h-3.5 text-purple-400" />
+                <Users className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
                 Viewing <span className="font-semibold text-foreground">{user.observedStudentName}</span>'s academic progress
               </p>
             ) : (
@@ -148,6 +149,7 @@ export default function Dashboard() {
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+            <ThemeToggle />
             {isObserver && (
               <Button
                 variant="outline"

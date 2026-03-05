@@ -8,12 +8,12 @@ export function SemesterProgress({ progress }: { progress: number }) {
         <span className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
           Academic Milestone
         </span>
-        <span className="text-lg font-bold text-emerald-400">{progress}%</span>
+        <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{progress}%</span>
       </div>
       <h3 className="font-semibold text-lg mb-3">Semester Progress</h3>
       <Progress value={progress} className="h-2 mb-3" />
       <p className="text-xs text-muted-foreground leading-relaxed">
-        Maintain your current <span className="text-blue-400 font-medium">4.0 streak</span> to reach Honors Platinum status by the end of November.
+        Maintain your current <span className="text-blue-600 dark:text-blue-400 font-medium">4.0 streak</span> to reach Honors Platinum status by the end of November.
       </p>
     </Card>
   );

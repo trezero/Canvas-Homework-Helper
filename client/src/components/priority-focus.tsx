@@ -3,16 +3,16 @@ import { Card } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
 
 const typeStyles: Record<string, { dot: string; label: string }> = {
-  critical: { dot: "bg-red-400", label: "CRITICAL ACTION" },
-  standard: { dot: "bg-blue-400", label: "STANDARD TASK" },
-  upcoming: { dot: "bg-slate-400", label: "COMING UP" },
+  critical: { dot: "bg-red-500 dark:bg-red-400", label: "CRITICAL ACTION" },
+  standard: { dot: "bg-blue-500 dark:bg-blue-400", label: "STANDARD TASK" },
+  upcoming: { dot: "bg-slate-400 dark:bg-slate-400", label: "COMING UP" },
 };
 
 export function PriorityFocus({ items }: { items: PriorityItem[] }) {
   return (
     <Card className="p-5" data-testid="card-priority-focus">
       <div className="flex items-center gap-2 mb-5">
-        <BarChart3 className="w-4 h-4 text-blue-400" />
+        <BarChart3 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
         <h3 className="font-semibold">Priority Focus</h3>
       </div>
       <div className="space-y-5">

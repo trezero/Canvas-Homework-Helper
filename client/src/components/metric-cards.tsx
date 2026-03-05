@@ -7,14 +7,14 @@ export function MetricCards({ metrics }: { metrics: DashboardMetrics }) {
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <Card className="p-5 relative" data-testid="card-completion-rate">
         <div className="flex items-center gap-2 mb-3">
-          <CheckCircle2 className="w-4 h-4 text-blue-400" />
+          <CheckCircle2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
           <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
             Completion Rate
           </span>
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold">{metrics.completionRate}%</span>
-          <span className="text-xs font-medium text-emerald-400">
+          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
             +{metrics.completionRateChange}%
           </span>
         </div>
@@ -22,7 +22,7 @@ export function MetricCards({ metrics }: { metrics: DashboardMetrics }) {
 
       <Card className="p-5 relative" data-testid="card-streak">
         <div className="flex items-center gap-2 mb-3">
-          <Clock className="w-4 h-4 text-blue-400" />
+          <Clock className="w-4 h-4 text-blue-500 dark:text-blue-400" />
           <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
             On-Time Streak
           </span>
@@ -35,7 +35,7 @@ export function MetricCards({ metrics }: { metrics: DashboardMetrics }) {
 
       <Card className="p-5 relative" data-testid="card-total-tasks">
         <div className="flex items-center gap-2 mb-3">
-          <CheckSquare className="w-4 h-4 text-emerald-400" />
+          <CheckSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
             Total Tasks Done
           </span>

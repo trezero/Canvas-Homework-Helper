@@ -4,11 +4,26 @@ import { Badge } from "@/components/ui/badge";
 
 function StatusBadge({ status }: { status: string }) {
   const variants: Record<string, { className: string; label: string }> = {
-    overdue: { className: "bg-red-500/15 text-red-400 border-red-500/20", label: "OVERDUE" },
-    priority: { className: "bg-orange-500/15 text-orange-400 border-orange-500/20", label: "PRIORITY" },
-    "in progress": { className: "bg-blue-500/15 text-blue-400 border-blue-500/20", label: "IN PROGRESS" },
-    pending: { className: "bg-slate-500/15 text-slate-400 border-slate-500/20", label: "PENDING" },
-    completed: { className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20", label: "COMPLETED" },
+    overdue: {
+      className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/20",
+      label: "OVERDUE",
+    },
+    priority: {
+      className: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-400 dark:border-orange-500/20",
+      label: "PRIORITY",
+    },
+    "in progress": {
+      className: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/20",
+      label: "IN PROGRESS",
+    },
+    pending: {
+      className: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/15 dark:text-slate-400 dark:border-slate-500/20",
+      label: "PENDING",
+    },
+    completed: {
+      className: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/20",
+      label: "COMPLETED",
+    },
   };
 
   const v = variants[status.toLowerCase()] || variants.pending;
@@ -34,7 +49,7 @@ export function DeadlinesTable({
       <div className="flex items-center justify-between gap-2 mb-4">
         <h2 className="text-lg font-semibold" data-testid="text-deadlines-title">Upcoming Deadlines</h2>
         {priorityCount > 0 && (
-          <Badge variant="outline" className="text-[10px] font-semibold tracking-wider bg-blue-500/10 text-blue-400 border-blue-500/20 no-default-active-elevate">
+          <Badge variant="outline" className="text-[10px] font-semibold tracking-wider bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 no-default-active-elevate">
             {priorityCount} PRIORITY ITEMS
           </Badge>
         )}
@@ -97,7 +112,7 @@ export function DeadlinesTable({
         </div>
         {assignments.filter((a) => !a.completed).length > 8 && (
           <div className="py-3 text-center border-t border-border/30">
-            <button className="text-xs font-semibold tracking-widest uppercase text-muted-foreground" data-testid="button-view-all">
+            <button className="text-xs font-semibold tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors" data-testid="button-view-all">
               View All Assignments
             </button>
           </div>
