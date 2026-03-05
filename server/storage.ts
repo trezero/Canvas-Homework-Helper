@@ -5,11 +5,14 @@ import {
   type InsertAssignment,
   type DashboardMetrics,
   type PriorityItem,
+  type SavedFilter,
+  type InsertSavedFilter,
   users,
   assignments,
+  savedFilters,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -21,6 +24,11 @@ export interface IStorage {
   deleteAssignmentsByUser(userId: string): Promise<void>;
   getMetrics(userId: string): Promise<DashboardMetrics>;
   getPriorities(userId: string): Promise<PriorityItem[]>;
+  getSavedFilters(userId: string): Promise<SavedFilter[]>;
+  createSavedFilter(filter: InsertSavedFilter): Promise<SavedFilter>;
+  updateSavedFilter(id: string, data: Partial<SavedFilter>): Promise<SavedFilter | undefined>;
+  deleteSavedFilter(id: string): Promise<void>;
+  setDefaultFilter(userId: string, filterId: string): Promise<SavedFilter | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -164,6 +172,30 @@ export class DatabaseStorage implements IStorage {
     }
 
     return items;
+  }
+
+  async getSavedFilters(userId: string): Promise<SavedFilter[]> {
+    return db.select().from(savedFilters).where(eq(savedFilters.userId, userId));
+  }
+
+  async createSavedFilter(filter: InsertSavedFilter): Promise<SavedFilter> {
+    const [created] = await db.insert(savedFilters).values(filter).returning();
+    return created;
+  }
+
+  async updateSavedFilter(id: string, data: Partial<SavedFilter>): Promise<SavedFilter | undefined> {
+    const [updated] = await db.update(savedFilters).set(data).where(eq(savedFilters.id, id)).returning();
+    return updated;
+  }
+
+  async deleteSavedFilter(id: string): Promise<void> {
+    await db.delete(savedFilters).where(eq(savedFilters.id, id));
+  }
+
+  async setDefaultFilter(userId: string, filterId: string): Promise<SavedFilter | undefined> {
+    await db.update(savedFilters).set({ isDefault: false }).where(eq(savedFilters.userId, userId));
+    const [updated] = await db.update(savedFilters).set({ isDefault: true }).where(and(eq(savedFilters.id, filterId), eq(savedFilters.userId, userId))).returning();
+    return updated;
   }
 }
 

@@ -1,14 +1,15 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { User, Assignment, DashboardMetrics, PriorityItem, CanvasObservee, CanvasSyncResult } from "@shared/schema";
+import type { User, Assignment, DashboardMetrics, PriorityItem, CanvasObservee, CanvasSyncResult, SavedFilter } from "@shared/schema";
 import { MetricCards } from "@/components/metric-cards";
 import { DeadlinesTable } from "@/components/deadlines-table";
 import { PriorityFocus } from "@/components/priority-focus";
 import { SemesterProgress } from "@/components/semester-progress";
 import { UserSettingsModal } from "@/components/user-settings-modal";
 import { ObserverStudentPicker } from "@/components/observer-student-picker";
-import { SearchBar } from "@/components/search-bar";
+import { SearchBar, type StatusFilter } from "@/components/search-bar";
+import { SavedFiltersBar } from "@/components/saved-filters-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,8 +20,12 @@ export default function Dashboard() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [courseFilter, setCourseFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [hideLocked, setHideLocked] = useState(false);
   const [studentPickerOpen, setStudentPickerOpen] = useState(false);
   const [pendingObservees, setPendingObservees] = useState<CanvasObservee[]>([]);
+  const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
+  const [defaultApplied, setDefaultApplied] = useState(false);
   const { toast } = useToast();
 
   const { data: user, isLoading: userLoading } = useQuery<User & { hasCanvasToken?: boolean }>({
@@ -37,6 +42,77 @@ export default function Dashboard() {
 
   const { data: priorities, isLoading: prioritiesLoading } = useQuery<PriorityItem[]>({
     queryKey: ["/api/priorities"],
+  });
+
+  const { data: savedFilters } = useQuery<SavedFilter[]>({
+    queryKey: ["/api/saved-filters"],
+  });
+
+  const applyFilter = useCallback((filter: SavedFilter) => {
+    const f = filter.filters as { course?: string; status?: string[]; hideLocked?: boolean; searchQuery?: string };
+    setCourseFilter(f.course || "all");
+    setStatusFilter((f.status?.[0] as StatusFilter) || "all");
+    setHideLocked(f.hideLocked || false);
+    setSearchQuery(f.searchQuery || "");
+    setActiveFilterId(filter.id);
+  }, []);
+
+  useEffect(() => {
+    if (defaultApplied || !savedFilters) return;
+    const defaultFilter = savedFilters.find((f) => f.isDefault);
+    if (defaultFilter) {
+      applyFilter(defaultFilter);
+    }
+    setDefaultApplied(true);
+  }, [savedFilters, defaultApplied, applyFilter]);
+
+  const currentFilterState = {
+    course: courseFilter !== "all" ? courseFilter : undefined,
+    status: statusFilter !== "all" ? [statusFilter] : undefined,
+    hideLocked: hideLocked || undefined,
+    searchQuery: searchQuery || undefined,
+  };
+
+  const hasActiveFilters = courseFilter !== "all" || statusFilter !== "all" || hideLocked || searchQuery !== "";
+
+  const saveFilterMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await apiRequest("POST", "/api/saved-filters", {
+        userId: user?.id,
+        name,
+        filters: currentFilterState,
+        isDefault: false,
+      });
+      return res.json() as Promise<SavedFilter>;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-filters"] });
+      setActiveFilterId(data.id);
+      toast({ title: "View saved", description: `"${data.name}" has been saved.` });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to save filter.", variant: "destructive" });
+    },
+  });
+
+  const deleteFilterMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/saved-filters/${id}`);
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-filters"] });
+      if (activeFilterId === id) setActiveFilterId(null);
+    },
+  });
+
+  const setDefaultMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("POST", `/api/saved-filters/${id}/default`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-filters"] });
+      toast({ title: "Default view set", description: "This view will load when you open the app." });
+    },
   });
 
   const syncMutation = useMutation({
@@ -112,7 +188,9 @@ export default function Dashboard() {
       a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.notes && a.notes.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCourse = courseFilter === "all" || a.subject === courseFilter;
-    return matchesSearch && matchesCourse;
+    const matchesStatus = statusFilter === "all" || a.status.toLowerCase() === statusFilter;
+    const matchesLocked = !hideLocked || !a.completed;
+    return matchesSearch && matchesCourse && matchesStatus && matchesLocked;
   });
 
   const isLoading = userLoading || assignmentsLoading || metricsLoading || prioritiesLoading;
@@ -185,18 +263,34 @@ export default function Dashboard() {
 
         {metrics && <MetricCards metrics={metrics} />}
 
+        <SavedFiltersBar
+          savedFilters={savedFilters || []}
+          activeFilterId={activeFilterId}
+          onApply={applyFilter}
+          onSave={(name) => saveFilterMutation.mutate(name)}
+          onDelete={(id) => deleteFilterMutation.mutate(id)}
+          onSetDefault={(id) => setDefaultMutation.mutate(id)}
+          hasActiveFilters={hasActiveFilters}
+          isSaving={saveFilterMutation.isPending}
+        />
+
         <SearchBar
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={(val) => { setSearchQuery(val); setActiveFilterId(null); }}
           courseFilter={courseFilter}
-          onCourseFilterChange={setCourseFilter}
+          onCourseFilterChange={(val) => { setCourseFilter(val); setActiveFilterId(null); }}
           courses={courses}
+          statusFilter={statusFilter}
+          onStatusFilterChange={(val) => { setStatusFilter(val); setActiveFilterId(null); }}
+          hideLocked={hideLocked}
+          onHideLockedChange={(val) => { setHideLocked(val); setActiveFilterId(null); }}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 mt-6">
           <div className="space-y-6">
             <DeadlinesTable
               assignments={filteredAssignments || []}
+              totalCount={assignments?.length || 0}
               priorityCount={priorities?.length || 0}
             />
           </div>

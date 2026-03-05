@@ -5,7 +5,7 @@ import { seedDatabase } from "./seed";
 import { CanvasClient } from "./canvas";
 import session from "express-session";
 import { db } from "./db";
-import { users } from "@shared/schema";
+import { users, insertSavedFilterSchema } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import MemoryStore from "memorystore";
@@ -283,6 +283,76 @@ export async function registerRoutes(
         success: false,
         message: `Canvas sync failed: ${e.message}`,
       });
+    }
+  });
+
+  app.get("/api/saved-filters", async (_req, res) => {
+    try {
+      const user = await getDemoUser();
+      if (!user) return res.status(404).json({ message: "User not found" });
+      const filters = await storage.getSavedFilters(user.id);
+      res.json(filters);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.post("/api/saved-filters", async (req, res) => {
+    try {
+      const user = await getDemoUser();
+      if (!user) return res.status(404).json({ message: "User not found" });
+      const parsed = insertSavedFilterSchema.safeParse({ ...req.body, userId: user.id });
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
+      }
+      const filter = await storage.createSavedFilter(parsed.data);
+      res.status(201).json(filter);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.patch("/api/saved-filters/:id", async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        name: z.string().min(1).optional(),
+        filters: z.object({
+          course: z.string().optional(),
+          status: z.array(z.string()).optional(),
+          hideLocked: z.boolean().optional(),
+          searchQuery: z.string().optional(),
+        }).optional(),
+      });
+      const parsed = updateSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
+      }
+      const updated = await storage.updateSavedFilter(req.params.id, parsed.data);
+      if (!updated) return res.status(404).json({ message: "Filter not found" });
+      res.json(updated);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.delete("/api/saved-filters/:id", async (_req, res) => {
+    try {
+      await storage.deleteSavedFilter(_req.params.id);
+      res.status(204).send();
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.post("/api/saved-filters/:id/default", async (req, res) => {
+    try {
+      const user = await getDemoUser();
+      if (!user) return res.status(404).json({ message: "User not found" });
+      const updated = await storage.setDefaultFilter(user.id, req.params.id);
+      if (!updated) return res.status(404).json({ message: "Filter not found" });
+      res.json(updated);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
     }
   });
 
