@@ -14,7 +14,7 @@ import { SavedFiltersBar } from "@/components/saved-filters-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Settings, Users, LogOut } from "lucide-react";
+import { RefreshCw, Settings, LogOut, GraduationCap, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
@@ -225,8 +225,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <header className="mb-6 sm:mb-8">
-          <div className="flex items-start justify-between gap-3">
+        <header className="mb-6 sm:mb-8 space-y-4">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight" data-testid="text-greeting">
                 {greeting()},{" "}
@@ -234,12 +234,7 @@ export default function Dashboard() {
                   {greetingName}
                 </span>
               </h1>
-              {isObserver && user?.observedStudentName ? (
-                <p className="text-muted-foreground mt-1 text-sm flex items-center gap-2" data-testid="text-subtitle">
-                  <Users className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
-                  Viewing <span className="font-semibold text-foreground">{user.observedStudentName}</span>'s academic progress
-                </p>
-              ) : (
+              {!(isObserver && user?.observedStudentName) && (
                 <p className="text-muted-foreground mt-1 text-xs sm:text-sm" data-testid="text-subtitle">
                   {metrics && metrics.missingCount === 0
                     ? "All assignments are on track — keep it up!"
@@ -250,6 +245,17 @@ export default function Dashboard() {
               )}
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => syncMutation.mutate(user?.observedStudentId || undefined)}
+                disabled={syncMutation.isPending}
+                data-testid="button-sync"
+              >
+                <RefreshCw className={`w-4 h-4 mr-1.5 ${syncMutation.isPending ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline">Update Records</span>
+                <span className="sm:hidden">Sync</span>
+              </Button>
               <ThemeToggle />
               <Button
                 size="icon"
@@ -261,30 +267,36 @@ export default function Dashboard() {
               </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
-            {isObserver && (
+
+          {isObserver && user?.observedStudentName && (
+            <div
+              className="flex items-center gap-3 sm:gap-4 rounded-xl border border-border/60 bg-card/80 px-4 py-3"
+              data-testid="text-subtitle"
+            >
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 dark:from-blue-500 dark:to-cyan-400 flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] sm:text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
+                  Viewing Profile
+                </p>
+                <p className="text-sm sm:text-base font-semibold truncate mt-0.5">
+                  {user.observedStudentName}
+                </p>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
+                className="flex-shrink-0 gap-1.5"
                 onClick={() => switchStudentMutation.mutate()}
                 disabled={switchStudentMutation.isPending}
                 data-testid="button-switch-student"
               >
-                <Users className="w-4 h-4 mr-2" />
-                {switchStudentMutation.isPending ? "Loading..." : "Switch Student"}
+                {switchStudentMutation.isPending ? "Loading..." : "Switch"}
+                <ChevronsUpDown className="w-3.5 h-3.5 opacity-60" />
               </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => syncMutation.mutate(user?.observedStudentId || undefined)}
-              disabled={syncMutation.isPending}
-              data-testid="button-sync"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${syncMutation.isPending ? "animate-spin" : ""}`} />
-              Update Records
-            </Button>
-          </div>
+            </div>
+          )}
         </header>
 
         {metrics && <MetricCards metrics={metrics} />}
