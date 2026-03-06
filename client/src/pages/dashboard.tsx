@@ -223,7 +223,11 @@ export default function Dashboard() {
               </p>
             ) : (
               <p className="text-muted-foreground mt-1 text-sm" data-testid="text-subtitle">
-                You've maintained an <span className="font-semibold text-foreground">Excellent</span> consistency rate this week.
+                {metrics && metrics.missingCount === 0
+                  ? "All assignments are on track — keep it up!"
+                  : metrics && metrics.averageScore != null && metrics.averageScore >= 85
+                  ? `${metrics.missingCount} assignment${metrics.missingCount !== 1 ? "s" : ""} to catch up on`
+                  : "Here's your progress at a glance."}
               </p>
             )}
           </div>

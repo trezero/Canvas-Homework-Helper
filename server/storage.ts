@@ -68,35 +68,45 @@ export class DatabaseStorage implements IStorage {
   async getMetrics(userId: string): Promise<DashboardMetrics> {
     const allAssignments = await this.getAssignments(userId);
     const total = allAssignments.length;
-    const completed = allAssignments.filter((a) => a.completed).length;
-    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-    let streak = 0;
-    const sorted = allAssignments
-      .filter((a) => a.completed)
-      .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
-    const today = new Date();
-    for (const a of sorted) {
-      const due = new Date(a.dueDate);
-      if (due <= today) {
-        streak++;
-      } else {
-        break;
+    const graded = allAssignments.filter((a) => a.status === "graded_on_time" || a.status === "graded_late");
+    const gradedCount = graded.length;
+
+    const scored = graded.filter((a) => a.score != null && a.pointsPossible != null && a.pointsPossible > 0);
+    const averageScore = scored.length > 0
+      ? Math.round(scored.reduce((acc, a) => acc + (a.score! / a.pointsPossible!) * 100, 0) / scored.length * 10) / 10
+      : null;
+
+    const missingCount = allAssignments.filter((a) => a.status === "missing").length;
+    const pendingGradeCount = allAssignments.filter((a) => a.status === "submitted_pending_grade" || a.status === "submitted_late").length;
+
+    let focusCourse: string | null = null;
+    let focusCourseReason: string | null = null;
+
+    const missingByCourse: Record<string, number> = {};
+    allAssignments.filter((a) => a.status === "missing").forEach((a) => {
+      missingByCourse[a.subject] = (missingByCourse[a.subject] || 0) + 1;
+    });
+
+    if (Object.keys(missingByCourse).length > 0) {
+      const sorted = Object.entries(missingByCourse).sort((a, b) => b[1] - a[1]);
+      focusCourse = sorted[0][0];
+      focusCourseReason = `${sorted[0][1]} missing assignment${sorted[0][1] > 1 ? "s" : ""}`;
+    } else {
+      const courseScores: Record<string, { total: number; count: number }> = {};
+      scored.forEach((a) => {
+        if (!courseScores[a.subject]) courseScores[a.subject] = { total: 0, count: 0 };
+        courseScores[a.subject].total += (a.score! / a.pointsPossible!) * 100;
+        courseScores[a.subject].count++;
+      });
+      const coursesWithAvg = Object.entries(courseScores)
+        .map(([name, v]) => ({ name, avg: v.total / v.count }))
+        .filter((c) => c.avg < 90)
+        .sort((a, b) => a.avg - b.avg);
+      if (coursesWithAvg.length > 0) {
+        focusCourse = coursesWithAvg[0].name;
+        focusCourseReason = `${Math.round(coursesWithAvg[0].avg)}% average`;
       }
-    }
-
-    const avgGrade =
-      allAssignments.filter((a) => a.grade != null).reduce((acc, a) => acc + (a.grade || 0), 0) /
-      (allAssignments.filter((a) => a.grade != null).length || 1);
-
-    let standing = "Good Standing";
-    let standingDetail = "Keep up the work";
-    if (avgGrade >= 93) {
-      standing = "Honors List";
-      standingDetail = "Top 5% of cohort";
-    } else if (avgGrade >= 85) {
-      standing = "Dean's List";
-      standingDetail = "Top 15% of cohort";
     }
 
     const now = new Date();
@@ -117,15 +127,14 @@ export class DatabaseStorage implements IStorage {
     const elapsed = (now.getTime() - semesterStart.getTime()) / (1000 * 60 * 60 * 24);
     const semesterProgress = Math.min(100, Math.max(0, Math.round((elapsed / totalDays) * 100)));
 
-    const adjustedCompletionRate = total > 0 ? Math.round(((completed + 0.5) / (total * 0.7)) * 100) : 0;
-
     return {
-      completionRate: Math.min(adjustedCompletionRate, 99),
-      completionRateChange: 2.4,
-      onTimeStreak: Math.max(streak, 12),
-      totalTasksDone: completed + 140,
-      currentStanding: standing,
-      standingDetail,
+      gradedCount,
+      totalCount: total,
+      averageScore,
+      missingCount,
+      pendingGradeCount,
+      focusCourse,
+      focusCourseReason,
       semesterProgress,
     };
   }

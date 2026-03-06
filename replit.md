@@ -10,7 +10,8 @@ A responsive student achievement dashboard web app supporting both students and 
 - **Styling**: Tailwind CSS with shadcn/ui components
 
 ## Key Features
-- Dashboard with metric cards (completion rate, on-time streak, total tasks, current standing)
+- Dashboard with metric cards showing real data: Graded count, Average Score, Missing (Needs Attention), Course to Focus On
+- Assignment detail popup: click any assignment row to see full details (score, dates, status, type, missing warning)
 - Full assignment table with sortable columns, score display, and pagination (15 per page)
 - Smart filter bar: search, course dropdown, status filter (7 granular statuses), hide-graded toggle
 - Active filter chips with clear-all option

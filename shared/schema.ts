@@ -93,12 +93,13 @@ export type Assignment = typeof assignments.$inferSelect;
 export type InsertAssignment = z.infer<typeof insertAssignmentSchema>;
 
 export type DashboardMetrics = {
-  completionRate: number;
-  completionRateChange: number;
-  onTimeStreak: number;
-  totalTasksDone: number;
-  currentStanding: string;
-  standingDetail: string;
+  gradedCount: number;
+  totalCount: number;
+  averageScore: number | null;
+  missingCount: number;
+  pendingGradeCount: number;
+  focusCourse: string | null;
+  focusCourseReason: string | null;
   semesterProgress: number;
 };
 

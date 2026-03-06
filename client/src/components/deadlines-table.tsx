@@ -3,6 +3,7 @@ import type { Assignment } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AssignmentDetailModal } from "@/components/assignment-detail-modal";
 import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, List, LayoutGrid, ChevronDown, ChevronUp } from "lucide-react";
 
 function StatusBadge({ status }: { status: string }) {
@@ -107,7 +108,7 @@ type CourseGroup = {
   avgScore: number | null;
 };
 
-function CourseGroupedView({ assignments }: { assignments: Assignment[] }) {
+function CourseGroupedView({ assignments, onSelect }: { assignments: Assignment[]; onSelect: (a: Assignment) => void }) {
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
 
   const groups = useMemo(() => {
@@ -191,7 +192,12 @@ function CourseGroupedView({ assignments }: { assignments: Assignment[] }) {
                   </thead>
                   <tbody>
                     {group.assignments.map((a) => (
-                      <tr key={a.id} className="border-b border-border/20 last:border-0 hover-elevate" data-testid={`row-grouped-assignment-${a.id}`}>
+                      <tr
+                        key={a.id}
+                        className="border-b border-border/20 last:border-0 hover-elevate cursor-pointer"
+                        onClick={() => onSelect(a)}
+                        data-testid={`row-grouped-assignment-${a.id}`}
+                      >
                         <td className="py-2.5 px-4 font-medium text-sm">{a.courseName}</td>
                         <td className="py-2.5 px-4">
                           <div className="flex items-center gap-1.5 flex-wrap">
@@ -235,6 +241,13 @@ export function DeadlinesTable({
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [currentPage, setCurrentPage] = useState(0);
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const openDetail = (assignment: Assignment) => {
+    setSelectedAssignment(assignment);
+    setDetailOpen(true);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -322,7 +335,7 @@ export function DeadlinesTable({
       </div>
 
       {viewMode === "grouped" ? (
-        <CourseGroupedView assignments={assignments} />
+        <CourseGroupedView assignments={assignments} onSelect={openDetail} />
       ) : (
         <Card className="p-0">
           <div className="overflow-x-auto">
@@ -371,7 +384,8 @@ export function DeadlinesTable({
                 {paged.map((assignment) => (
                   <tr
                     key={assignment.id}
-                    className="border-b border-border/30 last:border-0 hover-elevate"
+                    className="border-b border-border/30 last:border-0 hover-elevate cursor-pointer"
+                    onClick={() => openDetail(assignment)}
                     data-testid={`row-assignment-${assignment.id}`}
                   >
                     <td className="py-3.5 px-4 font-medium" data-testid={`text-assignment-name-${assignment.id}`}>
@@ -440,6 +454,12 @@ export function DeadlinesTable({
           )}
         </Card>
       )}
+
+      <AssignmentDetailModal
+        assignment={selectedAssignment}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </div>
   );
 }
