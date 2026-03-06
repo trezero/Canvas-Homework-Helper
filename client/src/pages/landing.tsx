@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GraduationCap, BarChart3, Bell, Shield } from "lucide-react";
+import heroImage from "@assets/canvasHomeworkHelper_1772758626967.jpg";
 
 export default function Landing() {
   return (
@@ -51,32 +52,12 @@ export default function Landing() {
 
             <div className="hidden lg:block">
               <div className="relative">
-                <div className="rounded-2xl border border-border/50 bg-card p-8 shadow-2xl ring-1 ring-black/5 dark:ring-white/5">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="h-3 w-24 rounded bg-muted animate-pulse" />
-                      <div className="h-3 w-16 rounded bg-muted animate-pulse" />
-                    </div>
-                    <div className="grid grid-cols-4 gap-3">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="rounded-lg bg-muted/50 p-4 space-y-2">
-                          <div className="h-6 w-12 rounded bg-muted animate-pulse" />
-                          <div className="h-2 w-16 rounded bg-muted animate-pulse" />
-                        </div>
-                      ))}
-                    </div>
-                    <div className="space-y-2 mt-4">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="flex items-center gap-3 rounded-lg bg-muted/30 p-3">
-                          <div className="h-3 w-3 rounded-full bg-muted animate-pulse" />
-                          <div className="h-3 flex-1 rounded bg-muted animate-pulse" />
-                          <div className="h-5 w-16 rounded-full bg-muted animate-pulse" />
-                          <div className="h-3 w-12 rounded bg-muted animate-pulse" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src={heroImage}
+                  alt="Students using the Student Achievement Dashboard"
+                  className="rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5 w-full object-cover hover:scale-105 transition-transform duration-500"
+                  data-testid="img-hero"
+                />
               </div>
             </div>
           </div>
