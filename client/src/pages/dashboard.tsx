@@ -322,7 +322,7 @@ export default function Dashboard() {
         </div>
 
         <footer className="mt-12 pt-6 border-t border-border/50 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground tracking-wider uppercase">
-          <span data-testid="text-footer-version">Student Achievement Dashboard // V4.2 Professional</span>
+          <span data-testid="text-footer-version">Canvas Homework Helper // V4.2 Professional</span>
           <div className="flex items-center gap-6">
             <span>Support Portal</span>
             <span>Data & Privacy</span>
