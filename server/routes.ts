@@ -368,7 +368,7 @@ export async function registerRoutes(
       const updateSchema = z.object({
         name: z.string().min(1).optional(),
         filters: z.object({
-          course: z.string().optional(),
+          course: z.union([z.string(), z.array(z.string())]).optional(),
           status: z.array(z.string()).optional(),
           hideLocked: z.boolean().optional(),
           searchQuery: z.string().optional(),

@@ -14,7 +14,7 @@ A responsive student achievement dashboard web app supporting both students and 
 - Dashboard with metric cards showing real data: Graded count, Average Score, Missing (Needs Attention), Course to Focus On
 - Assignment detail popup: click any assignment row to see full details (score, dates, status, type, missing warning)
 - Full assignment table with sortable columns, score display, and pagination (15 per page)
-- Smart filter bar: search, course dropdown, status filter (7 granular statuses), hide-graded toggle
+- Smart filter bar: search, multi-select course dropdown (select multiple courses), status filter (7 granular statuses), hide-graded toggle
 - Active filter chips with clear-all option
 - Saved filter views (Quick Views): save current filter combo, name it, load with one click, set as default landing view
 - Course-grouped view toggle: switch between flat list and collapsible course sections with summary stats (missing count, avg score)

@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function Dashboard() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [courseFilter, setCourseFilter] = useState("all");
+  const [courseFilter, setCourseFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [hideLocked, setHideLocked] = useState(false);
   const [studentPickerOpen, setStudentPickerOpen] = useState(false);
@@ -61,8 +61,12 @@ export default function Dashboard() {
   }, [user, userLoading, firstTimeChecked]);
 
   const applyFilter = useCallback((filter: SavedFilter) => {
-    const f = filter.filters as { course?: string; status?: string[]; hideLocked?: boolean; searchQuery?: string };
-    setCourseFilter(f.course || "all");
+    const f = filter.filters as { course?: string | string[]; status?: string[]; hideLocked?: boolean; searchQuery?: string };
+    if (Array.isArray(f.course)) {
+      setCourseFilter(f.course);
+    } else {
+      setCourseFilter(f.course ? [f.course] : []);
+    }
     setStatusFilter((f.status?.[0] as StatusFilter) || "all");
     setHideLocked(f.hideLocked || false);
     setSearchQuery(f.searchQuery || "");
@@ -79,13 +83,13 @@ export default function Dashboard() {
   }, [savedFilters, defaultApplied, applyFilter]);
 
   const currentFilterState = {
-    course: courseFilter !== "all" ? courseFilter : undefined,
+    course: courseFilter.length > 0 ? courseFilter : undefined,
     status: statusFilter !== "all" ? [statusFilter] : undefined,
     hideLocked: hideLocked || undefined,
     searchQuery: searchQuery || undefined,
   };
 
-  const hasActiveFilters = courseFilter !== "all" || statusFilter !== "all" || hideLocked || searchQuery !== "";
+  const hasActiveFilters = courseFilter.length > 0 || statusFilter !== "all" || hideLocked || searchQuery !== "";
 
   const saveFilterMutation = useMutation({
     mutationFn: async (name: string) => {
@@ -199,7 +203,7 @@ export default function Dashboard() {
       a.courseName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.notes && a.notes.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCourse = courseFilter === "all" || a.subject === courseFilter;
+    const matchesCourse = courseFilter.length === 0 || courseFilter.includes(a.subject);
     const matchesStatus = statusFilter === "all" || a.status.toLowerCase() === statusFilter;
     const matchesLocked = !hideLocked || (a.status !== "graded_on_time" && a.status !== "graded_late");
     return matchesSearch && matchesCourse && matchesStatus && matchesLocked;
@@ -295,7 +299,7 @@ export default function Dashboard() {
           searchQuery={searchQuery}
           onSearchChange={(val) => { setSearchQuery(val); setActiveFilterId(null); }}
           courseFilter={courseFilter}
-          onCourseFilterChange={(val) => { setCourseFilter(val); setActiveFilterId(null); }}
+          onCourseFilterChange={(val: string[]) => { setCourseFilter(val); setActiveFilterId(null); }}
           courses={courses}
           statusFilter={statusFilter}
           onStatusFilterChange={(val) => { setStatusFilter(val); setActiveFilterId(null); }}

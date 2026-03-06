@@ -108,7 +108,7 @@ export const savedFilters = pgTable("saved_filters", {
   userId: varchar("user_id").notNull(),
   name: text("name").notNull(),
   filters: jsonb("filters").notNull().$type<{
-    course?: string;
+    course?: string | string[];
     status?: string[];
     hideLocked?: boolean;
     searchQuery?: string;
