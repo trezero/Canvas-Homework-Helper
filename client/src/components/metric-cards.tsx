@@ -11,16 +11,16 @@ export function MetricCards({ metrics }: { metrics: DashboardMetrics }) {
     : "text-muted-foreground";
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <Card className="p-5 relative" data-testid="card-graded">
-        <div className="flex items-center gap-2 mb-3">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <Card className="p-3.5 sm:p-5 relative" data-testid="card-graded">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+          <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 dark:text-emerald-400" />
+          <span className="text-[10px] sm:text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
             Graded
           </span>
         </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold" data-testid="text-graded-count">{metrics.gradedCount}</span>
+        <div className="flex items-baseline gap-1.5 sm:gap-2">
+          <span className="text-2xl sm:text-3xl font-bold" data-testid="text-graded-count">{metrics.gradedCount}</span>
           <span className="text-sm text-muted-foreground">of {metrics.totalCount}</span>
         </div>
         <p className="text-[11px] text-muted-foreground mt-1.5">
@@ -30,15 +30,15 @@ export function MetricCards({ metrics }: { metrics: DashboardMetrics }) {
         </p>
       </Card>
 
-      <Card className="p-5 relative" data-testid="card-average-score">
-        <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
+      <Card className="p-3.5 sm:p-5 relative" data-testid="card-average-score">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 dark:text-blue-400" />
+          <span className="text-[10px] sm:text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
             Average Score
           </span>
         </div>
-        <div className="flex items-baseline gap-2">
-          <span className={`text-3xl font-bold ${scoreColor}`} data-testid="text-average-score">
+        <div className="flex items-baseline gap-1.5 sm:gap-2">
+          <span className={`text-2xl sm:text-3xl font-bold ${scoreColor}`} data-testid="text-average-score">
             {metrics.averageScore != null ? `${metrics.averageScore}%` : "—"}
           </span>
         </div>
@@ -53,15 +53,15 @@ export function MetricCards({ metrics }: { metrics: DashboardMetrics }) {
         </p>
       </Card>
 
-      <Card className={`p-5 relative ${metrics.missingCount > 0 ? "" : ""}`} data-testid="card-missing">
-        <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle className={`w-4 h-4 ${metrics.missingCount > 0 ? "text-red-500 dark:text-red-400" : "text-emerald-500 dark:text-emerald-400"}`} />
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
+      <Card className={`p-3.5 sm:p-5 relative ${metrics.missingCount > 0 ? "" : ""}`} data-testid="card-missing">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+          <AlertTriangle className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${metrics.missingCount > 0 ? "text-red-500 dark:text-red-400" : "text-emerald-500 dark:text-emerald-400"}`} />
+          <span className="text-[10px] sm:text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
             Needs Attention
           </span>
         </div>
-        <div className="flex items-baseline gap-2">
-          <span className={`text-3xl font-bold ${metrics.missingCount > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`} data-testid="text-missing-count">
+        <div className="flex items-baseline gap-1.5 sm:gap-2">
+          <span className={`text-2xl sm:text-3xl font-bold ${metrics.missingCount > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`} data-testid="text-missing-count">
             {metrics.missingCount}
           </span>
           <span className="text-sm text-muted-foreground">missing</span>
@@ -76,16 +76,16 @@ export function MetricCards({ metrics }: { metrics: DashboardMetrics }) {
       </Card>
 
       <Card
-        className={`p-5 relative ${
+        className={`p-3.5 sm:p-5 relative ${
           metrics.focusCourse
             ? "bg-gradient-to-br from-amber-500/10 to-orange-500/10 dark:from-amber-500/5 dark:to-orange-500/5 border-amber-200/50 dark:border-amber-500/20"
             : "bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 dark:from-emerald-500/5 dark:to-cyan-500/5 border-emerald-200/50 dark:border-emerald-500/20"
         }`}
         data-testid="card-focus-course"
       >
-        <div className="flex items-center gap-2 mb-3">
-          <BookOpen className={`w-4 h-4 ${metrics.focusCourse ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`} />
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+          <BookOpen className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${metrics.focusCourse ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`} />
+          <span className="text-[10px] sm:text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
             {metrics.focusCourse ? "Course to Focus On" : "All Courses Strong"}
           </span>
         </div>

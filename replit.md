@@ -1,7 +1,7 @@
-# Student Achievement Dashboard
+# Canvas Homework Helper
 
 ## Overview
-A responsive student achievement dashboard web app supporting both students and observer (parent) accounts. Users connect their Canvas LMS account to view assignments, grades, and track academic progress.
+A fully responsive student achievement dashboard web app supporting both students and observer (parent) accounts. Users connect their Canvas LMS account to view assignments, grades, and track academic progress.
 
 ## Architecture
 - **Frontend**: React + TypeScript + Vite, dark-themed dashboard UI
@@ -25,6 +25,7 @@ A responsive student achievement dashboard web app supporting both students and 
 - Observer (parent) account support: auto-detects account type, shows linked students, allows switching between observed students
 - Replit Auth: landing page for logged-out users, protected dashboard for logged-in users, sign out in footer
 - Dark theme by default with light mode toggle (persisted in localStorage)
+- Fully responsive mobile design: card-based assignment list on small screens, stacked filters, compact metric cards, mobile-optimized modals and navigation
 
 ## Assignment Status System
 Granular Canvas-based status determination using boolean flags:

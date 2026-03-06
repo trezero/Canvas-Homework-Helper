@@ -7,25 +7,25 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-background/80 border-b border-border/50">
-        <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <GraduationCap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <span className="font-bold text-lg tracking-tight" data-testid="text-brand">Canvas Homework Helper</span>
+            <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
+            <span className="font-bold text-base sm:text-lg tracking-tight" data-testid="text-brand">Canvas Homework Helper</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <a href="/api/login">
-              <Button data-testid="button-login">Sign In</Button>
+              <Button size="sm" className="sm:h-10 sm:px-4 sm:text-sm" data-testid="button-login">Sign In</Button>
             </a>
           </div>
         </div>
       </nav>
 
-      <main className="pt-16">
-        <section className="max-w-[1200px] mx-auto px-6 py-24 lg:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight font-serif">
+      <main className="pt-14 sm:pt-16">
+        <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-16 sm:py-24 lg:py-32">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+            <div className="space-y-6 sm:space-y-8">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight font-serif">
                 Track Your{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
                   Academic Progress
@@ -63,8 +63,8 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="max-w-[1200px] mx-auto px-6 py-16">
-          <div className="grid md:grid-cols-3 gap-8">
+        <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
             <div className="group rounded-xl border border-border/50 bg-card p-6 transition-colors hover:bg-accent/50">
               <div className="mb-4 inline-flex rounded-lg bg-blue-100 dark:bg-blue-500/15 p-3">
                 <BarChart3 className="w-6 h-6 text-blue-700 dark:text-blue-400" />
@@ -96,8 +96,8 @@ export default function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-border/50 py-6">
-        <div className="max-w-[1200px] mx-auto px-6 flex items-center justify-between text-xs text-muted-foreground uppercase tracking-wider">
+      <footer className="border-t border-border/50 py-4 sm:py-6">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-center sm:justify-between gap-2 text-xs text-muted-foreground uppercase tracking-wider">
           <span>Canvas Homework Helper</span>
           <span>Data & Privacy</span>
         </div>

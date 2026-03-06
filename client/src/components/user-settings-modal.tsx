@@ -145,15 +145,15 @@ export function UserSettingsModal({ open, onOpenChange, user, onCanvasSettingsSa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] bg-card border-card-border p-0 max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="px-6 pt-6 pb-0">
+      <DialogContent className="sm:max-w-[560px] bg-card border-card-border p-0 max-h-[90vh] overflow-y-auto w-[calc(100vw-2rem)]">
+        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-0">
           <DialogTitle className="text-xl font-semibold">User Settings</DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
             Manage your profile and external integrations.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 pb-6 space-y-6 mt-4">
+        <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-6 mt-4">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <UserIcon className="w-4 h-4 text-blue-500 dark:text-blue-400" />
@@ -162,13 +162,13 @@ export function UserSettingsModal({ open, onOpenChange, user, onCanvasSettingsSa
               </span>
             </div>
 
-            <div className="flex items-start gap-5">
-              <div className="relative flex-shrink-0">
+            <div className="flex items-start gap-4 sm:gap-5">
+              <div className="relative flex-shrink-0 hidden sm:block">
                 <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xl font-bold">
                   {initials}
                 </div>
               </div>
-              <div className="flex-1 grid grid-cols-2 gap-3">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
                     Full Name
@@ -399,7 +399,7 @@ export function UserSettingsModal({ open, onOpenChange, user, onCanvasSettingsSa
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2">
             <Button variant="ghost" onClick={() => onOpenChange(false)} data-testid="button-cancel-settings">
               Cancel
             </Button>

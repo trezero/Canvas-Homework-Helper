@@ -224,32 +224,44 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
-      <div className="max-w-[1200px] mx-auto px-6 py-8">
-        <header className="flex items-start justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight" data-testid="text-greeting">
-              {greeting()},{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
-                {greetingName}
-              </span>
-            </h1>
-            {isObserver && user?.observedStudentName ? (
-              <p className="text-muted-foreground mt-1 text-sm flex items-center gap-2" data-testid="text-subtitle">
-                <Users className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
-                Viewing <span className="font-semibold text-foreground">{user.observedStudentName}</span>'s academic progress
-              </p>
-            ) : (
-              <p className="text-muted-foreground mt-1 text-sm" data-testid="text-subtitle">
-                {metrics && metrics.missingCount === 0
-                  ? "All assignments are on track — keep it up!"
-                  : metrics && metrics.averageScore != null && metrics.averageScore >= 85
-                  ? `${metrics.missingCount} assignment${metrics.missingCount !== 1 ? "s" : ""} to catch up on`
-                  : "Here's your progress at a glance."}
-              </p>
-            )}
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <header className="mb-6 sm:mb-8">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight" data-testid="text-greeting">
+                {greeting()},{" "}
+                <span className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
+                  {greetingName}
+                </span>
+              </h1>
+              {isObserver && user?.observedStudentName ? (
+                <p className="text-muted-foreground mt-1 text-sm flex items-center gap-2" data-testid="text-subtitle">
+                  <Users className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
+                  Viewing <span className="font-semibold text-foreground">{user.observedStudentName}</span>'s academic progress
+                </p>
+              ) : (
+                <p className="text-muted-foreground mt-1 text-xs sm:text-sm" data-testid="text-subtitle">
+                  {metrics && metrics.missingCount === 0
+                    ? "All assignments are on track — keep it up!"
+                    : metrics && metrics.averageScore != null && metrics.averageScore >= 85
+                    ? `${metrics.missingCount} assignment${metrics.missingCount !== 1 ? "s" : ""} to catch up on`
+                    : "Here's your progress at a glance."}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+              <ThemeToggle />
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => setSettingsOpen(true)}
+                data-testid="button-settings"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
-            <ThemeToggle />
+          <div className="flex items-center gap-2 mt-3 flex-wrap">
             {isObserver && (
               <Button
                 variant="outline"
@@ -264,20 +276,13 @@ export default function Dashboard() {
             )}
             <Button
               variant="outline"
+              size="sm"
               onClick={() => syncMutation.mutate(user?.observedStudentId || undefined)}
               disabled={syncMutation.isPending}
               data-testid="button-sync"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${syncMutation.isPending ? "animate-spin" : ""}`} />
               Update Records
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={() => setSettingsOpen(true)}
-              data-testid="button-settings"
-            >
-              <Settings className="w-4 h-4" />
             </Button>
           </div>
         </header>
@@ -321,11 +326,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <footer className="mt-12 pt-6 border-t border-border/50 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground tracking-wider uppercase">
-          <span data-testid="text-footer-version">Canvas Homework Helper // V4.2 Professional</span>
-          <div className="flex items-center gap-6">
-            <span>Support Portal</span>
-            <span>Data & Privacy</span>
+        <footer className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-xs text-muted-foreground tracking-wider uppercase">
+          <span data-testid="text-footer-version" className="text-center sm:text-left">Canvas Homework Helper // V4.2 Professional</span>
+          <div className="flex items-center gap-4 sm:gap-6">
+            <span className="hidden sm:inline">Support Portal</span>
+            <span className="hidden sm:inline">Data & Privacy</span>
             <a href="/api/logout" className="text-destructive font-medium flex items-center gap-1" data-testid="button-sign-out">
               <LogOut className="w-3 h-3" />
               Sign Out
@@ -356,10 +361,10 @@ export default function Dashboard() {
 function DashboardSkeleton() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-[1200px] mx-auto px-6 py-8">
-        <div className="mb-8">
-          <Skeleton className="h-10 w-80 mb-2" />
-          <Skeleton className="h-4 w-64" />
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <Skeleton className="h-8 sm:h-10 w-64 sm:w-80 mb-2" />
+          <Skeleton className="h-4 w-48 sm:w-64" />
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[1, 2, 3, 4].map((i) => (

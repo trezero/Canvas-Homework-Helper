@@ -75,14 +75,14 @@ function CourseMultiSelect({
         role="combobox"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="w-[200px] justify-between bg-card border-card-border font-normal h-9 px-3"
+        className="w-[160px] sm:w-[200px] justify-between bg-card border-card-border font-normal h-9 px-3"
         data-testid="select-course-filter"
       >
         <span className="truncate text-sm">{label}</span>
         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
       {open && (
-        <div className="absolute z-50 mt-1 w-[240px] rounded-md border border-border bg-popover p-1 shadow-md max-h-[280px] overflow-y-auto">
+        <div className="absolute z-50 mt-1 w-[calc(100vw-2rem)] sm:w-[240px] max-w-[280px] rounded-md border border-border bg-popover p-1 shadow-md max-h-[280px] overflow-y-auto right-0 sm:right-auto sm:left-0">
           <button
             className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
             onClick={() => {
@@ -172,45 +172,47 @@ export function SearchBar({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search assignments, topics, or faculty..."
+            placeholder="Search assignments..."
             className="pl-10 bg-card border-card-border"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             data-testid="input-search"
           />
         </div>
-        <CourseMultiSelect
-          selected={courseFilter}
-          onChange={onCourseFilterChange}
-          courses={courses}
-        />
-        <Select value={statusFilter} onValueChange={(val) => onStatusFilterChange(val as StatusFilter)}>
-          <SelectTrigger className="w-[160px] bg-card border-card-border" data-testid="select-status-filter">
-            <SelectValue placeholder="All Statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <div className="flex items-center gap-2">
-          <Switch
-            id="hide-locked"
-            checked={hideLocked}
-            onCheckedChange={onHideLockedChange}
-            data-testid="switch-hide-locked"
+        <div className="flex items-center gap-2 flex-wrap">
+          <CourseMultiSelect
+            selected={courseFilter}
+            onChange={onCourseFilterChange}
+            courses={courses}
           />
-          <Label htmlFor="hide-locked" className="text-sm text-muted-foreground whitespace-nowrap cursor-pointer">
-            Hide graded
-          </Label>
+          <Select value={statusFilter} onValueChange={(val) => onStatusFilterChange(val as StatusFilter)}>
+            <SelectTrigger className="w-[140px] sm:w-[160px] bg-card border-card-border" data-testid="select-status-filter">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="hide-locked"
+              checked={hideLocked}
+              onCheckedChange={onHideLockedChange}
+              data-testid="switch-hide-locked"
+            />
+            <Label htmlFor="hide-locked" className="text-sm text-muted-foreground whitespace-nowrap cursor-pointer">
+              Hide graded
+            </Label>
+          </div>
         </div>
       </div>
 

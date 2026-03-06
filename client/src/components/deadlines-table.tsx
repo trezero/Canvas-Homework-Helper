@@ -180,42 +180,66 @@ function CourseGroupedView({ assignments, onSelect }: { assignments: Assignment[
             </button>
             {isExpanded && (
               <div className="border-t border-border/50">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border/30">
-                      <th className="text-left py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Assignment</th>
-                      <th className="text-left py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Status</th>
-                      <th className="text-left py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Due Date</th>
-                      <th className="text-right py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Score</th>
-                      <th className="text-right py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Weight</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {group.assignments.map((a) => (
-                      <tr
-                        key={a.id}
-                        className="border-b border-border/20 last:border-0 hover-elevate cursor-pointer"
-                        onClick={() => onSelect(a)}
-                        data-testid={`row-grouped-assignment-${a.id}`}
-                      >
-                        <td className="py-2.5 px-4 font-medium text-sm">{a.courseName}</td>
-                        <td className="py-2.5 px-4">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <StatusBadge status={a.status} />
-                            <SecondaryBadges assignment={a} />
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-4 text-muted-foreground text-sm">{a.dueDate}</td>
-                        <td className="py-2.5 px-4 text-right font-medium text-sm">
-                          {a.score != null && a.pointsPossible != null
-                            ? `${a.score}/${a.pointsPossible}`
-                            : <span className="text-muted-foreground">—</span>}
-                        </td>
-                        <td className="py-2.5 px-4 text-right font-medium text-sm">{a.weight}%</td>
+                <div className="hidden md:block">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/30">
+                        <th className="text-left py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Assignment</th>
+                        <th className="text-left py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Status</th>
+                        <th className="text-left py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Due Date</th>
+                        <th className="text-right py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Score</th>
+                        <th className="text-right py-2 px-4 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Weight</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {group.assignments.map((a) => (
+                        <tr
+                          key={a.id}
+                          className="border-b border-border/20 last:border-0 hover-elevate cursor-pointer"
+                          onClick={() => onSelect(a)}
+                          data-testid={`row-grouped-assignment-${a.id}`}
+                        >
+                          <td className="py-2.5 px-4 font-medium text-sm">{a.courseName}</td>
+                          <td className="py-2.5 px-4">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <StatusBadge status={a.status} />
+                              <SecondaryBadges assignment={a} />
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-4 text-muted-foreground text-sm">{a.dueDate}</td>
+                          <td className="py-2.5 px-4 text-right font-medium text-sm">
+                            {a.score != null && a.pointsPossible != null
+                              ? `${a.score}/${a.pointsPossible}`
+                              : <span className="text-muted-foreground">—</span>}
+                          </td>
+                          <td className="py-2.5 px-4 text-right font-medium text-sm">{a.weight}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="md:hidden divide-y divide-border/20">
+                  {group.assignments.map((a) => (
+                    <div
+                      key={a.id}
+                      className="px-3.5 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => onSelect(a)}
+                      data-testid={`row-grouped-assignment-${a.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-medium text-sm truncate">{a.courseName}</p>
+                        {a.score != null && a.pointsPossible != null && (
+                          <span className="text-sm font-semibold flex-shrink-0">{a.score}/{a.pointsPossible}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        <StatusBadge status={a.status} />
+                        <SecondaryBadges assignment={a} />
+                        <span className="text-xs text-muted-foreground ml-auto">{a.dueDate}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </Card>
@@ -307,7 +331,7 @@ export function DeadlinesTable({
         </div>
         <div className="flex items-center gap-2">
           {priorityCount > 0 && (
-            <Badge variant="outline" className="text-[10px] font-semibold tracking-wider bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 no-default-active-elevate">
+            <Badge variant="outline" className="text-[10px] font-semibold tracking-wider bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 no-default-active-elevate hidden sm:inline-flex">
               {priorityCount} PRIORITY ITEMS
             </Badge>
           )}
@@ -337,122 +361,186 @@ export function DeadlinesTable({
       {viewMode === "grouped" ? (
         <CourseGroupedView assignments={assignments} onSelect={openDetail} />
       ) : (
-        <Card className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50">
-                  <th className={thClass} onClick={() => handleSort("courseName")} data-testid="header-sort-course">
-                    <span className="inline-flex items-center">
-                      Course Assignment
-                      <SortIcon field="courseName" sortField={sortField} sortDirection={sortDirection} />
-                    </span>
-                  </th>
-                  <th className={thClass} onClick={() => handleSort("subject")} data-testid="header-sort-subject">
-                    <span className="inline-flex items-center">
-                      Subject
-                      <SortIcon field="subject" sortField={sortField} sortDirection={sortDirection} />
-                    </span>
-                  </th>
-                  <th className={thClass} onClick={() => handleSort("status")} data-testid="header-sort-status">
-                    <span className="inline-flex items-center">
-                      Status
-                      <SortIcon field="status" sortField={sortField} sortDirection={sortDirection} />
-                    </span>
-                  </th>
-                  <th className={thClass} onClick={() => handleSort("dueDate")} data-testid="header-sort-due-date">
-                    <span className="inline-flex items-center">
-                      Due Date
-                      <SortIcon field="dueDate" sortField={sortField} sortDirection={sortDirection} />
-                    </span>
-                  </th>
-                  <th className={`${thClass} text-right`} onClick={() => handleSort("score")} data-testid="header-sort-score">
-                    <span className="inline-flex items-center justify-end w-full">
-                      Score
-                      <SortIcon field="score" sortField={sortField} sortDirection={sortDirection} />
-                    </span>
-                  </th>
-                  <th className={`${thClass} text-right`} onClick={() => handleSort("weight")} data-testid="header-sort-weight">
-                    <span className="inline-flex items-center justify-end w-full">
-                      Weight
-                      <SortIcon field="weight" sortField={sortField} sortDirection={sortDirection} />
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {paged.map((assignment) => (
-                  <tr
-                    key={assignment.id}
-                    className="border-b border-border/30 last:border-0 hover-elevate cursor-pointer"
-                    onClick={() => openDetail(assignment)}
-                    data-testid={`row-assignment-${assignment.id}`}
-                  >
-                    <td className="py-3.5 px-4 font-medium" data-testid={`text-assignment-name-${assignment.id}`}>
-                      {assignment.courseName}
-                    </td>
-                    <td className="py-3.5 px-4 text-muted-foreground">
-                      {assignment.subject}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <StatusBadge status={assignment.status} />
-                        <SecondaryBadges assignment={assignment} />
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-muted-foreground">
-                      {assignment.dueDate}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-medium" data-testid={`text-score-${assignment.id}`}>
-                      {assignment.score != null && assignment.pointsPossible != null
-                        ? `${assignment.score}/${assignment.pointsPossible}`
-                        : assignment.score != null
-                          ? `${assignment.score}`
-                          : <span className="text-muted-foreground">—</span>}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-medium">
-                      {assignment.weight}%
-                    </td>
-                  </tr>
-                ))}
-                {paged.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                      No assignments found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between gap-4 px-4 py-3 border-t border-border/30">
-              <span className="text-xs text-muted-foreground" data-testid="text-page-info">
-                Page {safePage + 1} of {totalPages}
-              </span>
-              <div className="flex items-center gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  disabled={safePage === 0}
-                  onClick={() => setCurrentPage(safePage - 1)}
-                  data-testid="button-prev-page"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  disabled={safePage >= totalPages - 1}
-                  onClick={() => setCurrentPage(safePage + 1)}
-                  data-testid="button-next-page"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+        <>
+          <div className="hidden md:block">
+            <Card className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50">
+                      <th className={thClass} onClick={() => handleSort("courseName")} data-testid="header-sort-course">
+                        <span className="inline-flex items-center">
+                          Course Assignment
+                          <SortIcon field="courseName" sortField={sortField} sortDirection={sortDirection} />
+                        </span>
+                      </th>
+                      <th className={thClass} onClick={() => handleSort("subject")} data-testid="header-sort-subject">
+                        <span className="inline-flex items-center">
+                          Subject
+                          <SortIcon field="subject" sortField={sortField} sortDirection={sortDirection} />
+                        </span>
+                      </th>
+                      <th className={thClass} onClick={() => handleSort("status")} data-testid="header-sort-status">
+                        <span className="inline-flex items-center">
+                          Status
+                          <SortIcon field="status" sortField={sortField} sortDirection={sortDirection} />
+                        </span>
+                      </th>
+                      <th className={thClass} onClick={() => handleSort("dueDate")} data-testid="header-sort-due-date">
+                        <span className="inline-flex items-center">
+                          Due Date
+                          <SortIcon field="dueDate" sortField={sortField} sortDirection={sortDirection} />
+                        </span>
+                      </th>
+                      <th className={`${thClass} text-right`} onClick={() => handleSort("score")} data-testid="header-sort-score">
+                        <span className="inline-flex items-center justify-end w-full">
+                          Score
+                          <SortIcon field="score" sortField={sortField} sortDirection={sortDirection} />
+                        </span>
+                      </th>
+                      <th className={`${thClass} text-right`} onClick={() => handleSort("weight")} data-testid="header-sort-weight">
+                        <span className="inline-flex items-center justify-end w-full">
+                          Weight
+                          <SortIcon field="weight" sortField={sortField} sortDirection={sortDirection} />
+                        </span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paged.map((assignment) => (
+                      <tr
+                        key={assignment.id}
+                        className="border-b border-border/30 last:border-0 hover-elevate cursor-pointer"
+                        onClick={() => openDetail(assignment)}
+                        data-testid={`row-assignment-${assignment.id}`}
+                      >
+                        <td className="py-3.5 px-4 font-medium" data-testid={`text-assignment-name-${assignment.id}`}>
+                          {assignment.courseName}
+                        </td>
+                        <td className="py-3.5 px-4 text-muted-foreground">
+                          {assignment.subject}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <StatusBadge status={assignment.status} />
+                            <SecondaryBadges assignment={assignment} />
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 text-muted-foreground">
+                          {assignment.dueDate}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-medium" data-testid={`text-score-${assignment.id}`}>
+                          {assignment.score != null && assignment.pointsPossible != null
+                            ? `${assignment.score}/${assignment.pointsPossible}`
+                            : assignment.score != null
+                              ? `${assignment.score}`
+                              : <span className="text-muted-foreground">—</span>}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-medium">
+                          {assignment.weight}%
+                        </td>
+                      </tr>
+                    ))}
+                    {paged.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                          No assignments found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-            </div>
-          )}
-        </Card>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between gap-4 px-4 py-3 border-t border-border/30">
+                  <span className="text-xs text-muted-foreground" data-testid="text-page-info">
+                    Page {safePage + 1} of {totalPages}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      disabled={safePage === 0}
+                      onClick={() => setCurrentPage(safePage - 1)}
+                      data-testid="button-prev-page"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      disabled={safePage >= totalPages - 1}
+                      onClick={() => setCurrentPage(safePage + 1)}
+                      data-testid="button-next-page"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <div className="md:hidden space-y-2">
+            {paged.map((assignment) => (
+              <Card
+                key={assignment.id}
+                className="p-3.5 cursor-pointer hover-elevate"
+                onClick={() => openDetail(assignment)}
+                data-testid={`card-assignment-${assignment.id}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate" data-testid={`text-assignment-name-${assignment.id}`}>
+                      {assignment.courseName}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{assignment.subject}</p>
+                  </div>
+                  {assignment.score != null && assignment.pointsPossible != null && (
+                    <span className="text-sm font-semibold flex-shrink-0" data-testid={`text-score-${assignment.id}`}>
+                      {assignment.score}/{assignment.pointsPossible}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <StatusBadge status={assignment.status} />
+                  <SecondaryBadges assignment={assignment} />
+                  <span className="text-xs text-muted-foreground ml-auto">{assignment.dueDate}</span>
+                </div>
+              </Card>
+            ))}
+            {paged.length === 0 && (
+              <Card className="p-8 text-center text-muted-foreground">No assignments found.</Card>
+            )}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between gap-4 pt-2">
+                <span className="text-xs text-muted-foreground" data-testid="text-page-info">
+                  Page {safePage + 1} of {totalPages}
+                </span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    disabled={safePage === 0}
+                    onClick={() => setCurrentPage(safePage - 1)}
+                    data-testid="button-prev-page"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    disabled={safePage >= totalPages - 1}
+                    onClick={() => setCurrentPage(safePage + 1)}
+                    data-testid="button-next-page"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       <AssignmentDetailModal
