@@ -5,9 +5,10 @@ A responsive student achievement dashboard web app supporting both students and 
 
 ## Architecture
 - **Frontend**: React + TypeScript + Vite, dark-themed dashboard UI
-- **Backend**: Express.js with session management
-- **Database**: PostgreSQL via Drizzle ORM
+- **Backend**: Express.js with Replit Auth (OpenID Connect via Passport)
+- **Database**: PostgreSQL via Drizzle ORM (sessions stored in DB via connect-pg-simple)
 - **Styling**: Tailwind CSS with shadcn/ui components
+- **Authentication**: Replit Auth (supports Google, GitHub, Apple, email sign-in)
 
 ## Key Features
 - Dashboard with metric cards showing real data: Graded count, Average Score, Missing (Needs Attention), Course to Focus On
@@ -22,6 +23,7 @@ A responsive student achievement dashboard web app supporting both students and 
 - User settings modal with Canvas LMS integration
 - Canvas API integration for syncing assignments and grades
 - Observer (parent) account support: auto-detects account type, shows linked students, allows switching between observed students
+- Replit Auth: landing page for logged-out users, protected dashboard for logged-in users, sign out in footer
 - Dark theme by default with light mode toggle (persisted in localStorage)
 
 ## Assignment Status System

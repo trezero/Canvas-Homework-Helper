@@ -2,6 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState, useEffect, useCallback } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { User, Assignment, DashboardMetrics, PriorityItem, CanvasObservee, CanvasSyncResult, SavedFilter } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
 import { MetricCards } from "@/components/metric-cards";
 import { DeadlinesTable } from "@/components/deadlines-table";
 import { PriorityFocus } from "@/components/priority-focus";
@@ -13,7 +14,7 @@ import { SavedFiltersBar } from "@/components/saved-filters-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Settings, Users } from "lucide-react";
+import { RefreshCw, Settings, Users, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
   const [defaultApplied, setDefaultApplied] = useState(false);
   const { toast } = useToast();
+  const { user: authUser } = useAuth();
 
   const { data: user, isLoading: userLoading } = useQuery<User & { hasCanvasToken?: boolean }>({
     queryKey: ["/api/user"],
@@ -201,9 +203,10 @@ export default function Dashboard() {
 
   const isObserver = user?.accountType === "observer";
   const firstName = (name: string) => name.split(" ")[0];
+  const displayName = user?.fullName || authUser?.firstName || "Student";
   const greetingName = isObserver
-    ? firstName(user?.fullName || "Parent")
-    : firstName(user?.fullName || "Student");
+    ? firstName(displayName || "Parent")
+    : firstName(displayName || "Student");
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
@@ -309,7 +312,10 @@ export default function Dashboard() {
           <div className="flex items-center gap-6">
             <span>Support Portal</span>
             <span>Data & Privacy</span>
-            <button className="text-destructive font-medium" data-testid="button-sign-out">Sign Out</button>
+            <a href="/api/logout" className="text-destructive font-medium flex items-center gap-1" data-testid="button-sign-out">
+              <LogOut className="w-3 h-3" />
+              Sign Out
+            </a>
           </div>
         </footer>
       </div>

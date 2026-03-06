@@ -1,17 +1,13 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { seedDatabase } from "./seed";
 import { CanvasClient } from "./canvas";
-import session from "express-session";
+import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import { db } from "./db";
-import { users, assignments, insertSavedFilterSchema } from "@shared/schema";
+import { assignments, insertSavedFilterSchema } from "@shared/schema";
 import { eq, inArray } from "drizzle-orm";
 import { resolveAssignmentStatus } from "@shared/status-resolver";
 import { z } from "zod";
-import MemoryStore from "memorystore";
-
-const SessionStore = MemoryStore(session);
 
 async function migrateOldStatuses() {
   const oldStatuses = ["completed", "overdue", "pending", "priority", "in progress"];
@@ -76,33 +72,25 @@ async function migrateOldStatuses() {
   console.log(`Migration complete: ${staleRecords.length} assignments updated.`);
 }
 
+function getUserId(req: Request): string {
+  return (req.user as any)?.claims?.sub;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || "dev-secret-change-me",
-      resave: false,
-      saveUninitialized: false,
-      store: new SessionStore({ checkPeriod: 86400000 }),
-      cookie: { maxAge: 86400000 },
-    })
-  );
+  await setupAuth(app);
+  registerAuthRoutes(app);
 
-  await seedDatabase();
   await migrateOldStatuses();
 
-  const getDemoUser = async () => {
-    const [user] = await db.select().from(users).where(eq(users.username, "demo"));
-    return user;
-  };
-
-  app.get("/api/user", async (_req, res) => {
+  app.get("/api/user", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
+      const userId = getUserId(req);
+      const user = await storage.getUser(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
-      const { password, canvasApiToken, ...safeUser } = user;
+      const { canvasApiToken, ...safeUser } = user;
       res.json({
         ...safeUser,
         canvasApiToken: canvasApiToken ? "••••••••••••••••" : null,
@@ -113,9 +101,10 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/user", async (req, res) => {
+  app.patch("/api/user", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
+      const userId = getUserId(req);
+      const user = await storage.getUser(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       const combinedSchema = z.object({
@@ -152,7 +141,7 @@ export async function registerRoutes(
 
       const updated = await storage.updateUser(user.id, updateData);
       if (!updated) return res.status(404).json({ message: "User not found" });
-      const { password, canvasApiToken, ...safeUser } = updated;
+      const { canvasApiToken, ...safeUser } = updated;
       res.json({
         ...safeUser,
         canvasApiToken: canvasApiToken ? "••••••••••••••••" : null,
@@ -163,40 +152,37 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/assignments", async (_req, res) => {
+  app.get("/api/assignments", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
-      if (!user) return res.status(404).json({ message: "User not found" });
-      const result = await storage.getAssignments(user.id);
+      const userId = getUserId(req);
+      const result = await storage.getAssignments(userId);
       res.json(result);
     } catch (e: any) {
       res.status(500).json({ message: e.message });
     }
   });
 
-  app.get("/api/metrics", async (_req, res) => {
+  app.get("/api/metrics", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
-      if (!user) return res.status(404).json({ message: "User not found" });
-      const result = await storage.getMetrics(user.id);
+      const userId = getUserId(req);
+      const result = await storage.getMetrics(userId);
       res.json(result);
     } catch (e: any) {
       res.status(500).json({ message: e.message });
     }
   });
 
-  app.get("/api/priorities", async (_req, res) => {
+  app.get("/api/priorities", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
-      if (!user) return res.status(404).json({ message: "User not found" });
-      const result = await storage.getPriorities(user.id);
+      const userId = getUserId(req);
+      const result = await storage.getPriorities(userId);
       res.json(result);
     } catch (e: any) {
       res.status(500).json({ message: e.message });
     }
   });
 
-  app.post("/api/canvas/test", async (req, res) => {
+  app.post("/api/canvas/test", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const schema = z.object({
         canvasBaseUrl: z.string().url(),
@@ -236,9 +222,10 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/canvas/observees", async (_req, res) => {
+  app.get("/api/canvas/observees", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
+      const userId = getUserId(req);
+      const user = await storage.getUser(userId);
       if (!user || !user.canvasBaseUrl || !user.canvasApiToken) {
         return res.status(400).json({ message: "Canvas not configured." });
       }
@@ -251,9 +238,10 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/canvas/sync", async (req, res) => {
+  app.post("/api/canvas/sync", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
+      const userId = getUserId(req);
+      const user = await storage.getUser(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       if (!user.canvasBaseUrl || !user.canvasApiToken) {
@@ -351,22 +339,20 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/saved-filters", async (_req, res) => {
+  app.get("/api/saved-filters", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
-      if (!user) return res.status(404).json({ message: "User not found" });
-      const filters = await storage.getSavedFilters(user.id);
+      const userId = getUserId(req);
+      const filters = await storage.getSavedFilters(userId);
       res.json(filters);
     } catch (e: any) {
       res.status(500).json({ message: e.message });
     }
   });
 
-  app.post("/api/saved-filters", async (req, res) => {
+  app.post("/api/saved-filters", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
-      if (!user) return res.status(404).json({ message: "User not found" });
-      const parsed = insertSavedFilterSchema.safeParse({ ...req.body, userId: user.id });
+      const userId = getUserId(req);
+      const parsed = insertSavedFilterSchema.safeParse({ ...req.body, userId });
       if (!parsed.success) {
         return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
       }
@@ -377,7 +363,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/saved-filters/:id", async (req, res) => {
+  app.patch("/api/saved-filters/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const updateSchema = z.object({
         name: z.string().min(1).optional(),
@@ -392,7 +378,7 @@ export async function registerRoutes(
       if (!parsed.success) {
         return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
       }
-      const updated = await storage.updateSavedFilter(req.params.id, parsed.data);
+      const updated = await storage.updateSavedFilter(req.params.id as string, parsed.data);
       if (!updated) return res.status(404).json({ message: "Filter not found" });
       res.json(updated);
     } catch (e: any) {
@@ -400,20 +386,19 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/saved-filters/:id", async (_req, res) => {
+  app.delete("/api/saved-filters/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      await storage.deleteSavedFilter(_req.params.id);
+      await storage.deleteSavedFilter(req.params.id as string);
       res.status(204).send();
     } catch (e: any) {
       res.status(500).json({ message: e.message });
     }
   });
 
-  app.post("/api/saved-filters/:id/default", async (req, res) => {
+  app.post("/api/saved-filters/:id/default", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await getDemoUser();
-      if (!user) return res.status(404).json({ message: "User not found" });
-      const updated = await storage.setDefaultFilter(user.id, req.params.id);
+      const userId = getUserId(req);
+      const updated = await storage.setDefaultFilter(userId, req.params.id as string);
       if (!updated) return res.status(404).json({ message: "Filter not found" });
       res.json(updated);
     } catch (e: any) {
