@@ -5,15 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-export type StatusFilter = "all" | "overdue" | "pending" | "in progress" | "priority" | "completed";
+export type StatusFilter = "all" | "missing" | "submitted_late" | "graded_late" | "graded_on_time" | "submitted_pending_grade" | "upcoming" | "no_status";
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "overdue", label: "Overdue" },
-  { value: "priority", label: "Priority" },
-  { value: "in progress", label: "In Progress" },
-  { value: "pending", label: "Pending" },
-  { value: "completed", label: "Completed" },
+  { value: "missing", label: "Missing" },
+  { value: "submitted_late", label: "Submitted (Late)" },
+  { value: "graded_late", label: "Graded (Late)" },
+  { value: "graded_on_time", label: "Graded" },
+  { value: "submitted_pending_grade", label: "Submitted" },
+  { value: "upcoming", label: "Upcoming" },
 ];
 
 type SearchBarProps = {
@@ -65,7 +66,7 @@ export function SearchBar({
   if (hideLocked) {
     activeFilters.push({
       key: "locked",
-      label: "Hiding completed",
+      label: "Hiding graded",
       onRemove: () => onHideLockedChange(false),
     });
   }
@@ -117,7 +118,7 @@ export function SearchBar({
             data-testid="switch-hide-locked"
           />
           <Label htmlFor="hide-locked" className="text-sm text-muted-foreground whitespace-nowrap cursor-pointer">
-            Hide completed
+            Hide graded
           </Label>
         </div>
       </div>

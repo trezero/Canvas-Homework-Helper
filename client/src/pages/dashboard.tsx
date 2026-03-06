@@ -189,7 +189,7 @@ export default function Dashboard() {
       (a.notes && a.notes.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCourse = courseFilter === "all" || a.subject === courseFilter;
     const matchesStatus = statusFilter === "all" || a.status.toLowerCase() === statusFilter;
-    const matchesLocked = !hideLocked || !a.completed;
+    const matchesLocked = !hideLocked || (a.status !== "graded_on_time" && a.status !== "graded_late");
     return matchesSearch && matchesCourse && matchesStatus && matchesLocked;
   });
 

@@ -19,12 +19,32 @@ export const users = pgTable("users", {
   canvasUserId: text("canvas_user_id"),
 });
 
+export const ASSIGNMENT_STATUSES = [
+  "missing",
+  "graded_late",
+  "submitted_late",
+  "graded_on_time",
+  "submitted_pending_grade",
+  "upcoming",
+  "no_status",
+] as const;
+
+export type AssignmentStatusEnum = (typeof ASSIGNMENT_STATUSES)[number];
+
+export type AssignmentFlags = {
+  hasSubmission: boolean;
+  isGraded: boolean;
+  isMissing: boolean;
+  isLate: boolean;
+  hasReplies: boolean;
+};
+
 export const assignments = pgTable("assignments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   courseName: text("course_name").notNull(),
   subject: text("subject").notNull(),
-  status: text("status").notNull().default("pending"),
+  status: text("status").notNull().default("no_status"),
   dueDate: text("due_date").notNull(),
   weight: real("weight").notNull().default(0),
   notes: text("notes"),
@@ -36,6 +56,12 @@ export const assignments = pgTable("assignments", {
   submittedAt: text("submitted_at"),
   gradedAt: text("graded_at"),
   courseId: text("course_id"),
+  assignmentType: text("assignment_type").notNull().default("assignment"),
+  hasSubmission: boolean("has_submission").notNull().default(false),
+  isGraded: boolean("is_graded").notNull().default(false),
+  isMissing: boolean("is_missing").notNull().default(false),
+  isLate: boolean("is_late").notNull().default(false),
+  hasReplies: boolean("has_replies").notNull().default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({

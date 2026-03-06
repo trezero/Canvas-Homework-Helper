@@ -1,0 +1,85 @@
+Data model requirements
+Create a clear, type‑safe model for assignments. For example (adapt to the language and framework I’m using):
+
+A Status enum with the exact values listed above.
+
+An AssignmentFlags structure containing:
+
+hasSubmission: boolean
+
+isGraded: boolean
+
+isMissing: boolean
+
+isLate: boolean
+
+hasReplies: boolean
+
+An AssignmentStatus structure that combines flags with the resolved status:
+
+status: Status
+
+flags: AssignmentFlags
+
+An Assignment structure that represents one LMS item in my app:
+
+id: string (LMS assignment ID)
+
+courseId: string
+
+title: string
+
+type: "assignment" | "quiz" | "discussion" | "announcement" | "other"
+
+dueAt: string | null (ISO datetime or null)
+
+pointsPossible: number | null
+
+score: number | null
+
+statusInfo: AssignmentStatus
+
+The code should keep raw LMS fields separate from derived fields so that status logic can be tested and evolved independently.
+
+Status resolver function
+Implement a pure function that takes raw data and returns AssignmentStatus. In pseudocode:
+
+text
+function resolveAssignmentStatus(input): AssignmentStatus {
+  flags = {
+    hasSubmission:   input.hasSubmission,
+    isGraded:        input.isGraded,
+    isMissing:       input.isMissing,
+    isLate:          input.isLate,
+    hasReplies:      input.hasReplies,
+  }
+
+  status = "no_status"
+
+  if (flags.isMissing && !flags.hasSubmission) {
+    status = "missing"
+  } else if (flags.hasSubmission && flags.isLate && flags.isGraded) {
+    status = "graded_late"
+  } else if (flags.hasSubmission && flags.isLate && !flags.isGraded) {
+    status = "submitted_late"
+  } else if (flags.hasSubmission && !flags.isLate && flags.isGraded) {
+    status = "graded_on_time"
+  } else if (flags.hasSubmission && !flags.isLate && !flags.isGraded) {
+    status = "submitted_pending_grade"
+  } else if (!flags.hasSubmission && !flags.isMissing && input.dueAtIsInFuture) {
+    status = "upcoming"
+  }
+
+  return { status, flags }
+}
+Treat “due in the future” as an input precomputed from the due‑at timestamp.
+
+Expectations for the agent
+In your implementation:
+
+Keep the resolver deterministic and side‑effect‑free so it can be unit tested with many combinations of flags.
+
+Ensure that for any combination of hasSubmission, isGraded, isMissing, isLate, and due date, exactly one Status is chosen.
+
+Write tests for edge cases like “Graded + Missing” and “Graded + Late” based on the priority rules defined earlier, always avoiding conflicting chips like “Missing” and “Graded” at the same time.
+​

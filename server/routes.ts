@@ -5,12 +5,76 @@ import { seedDatabase } from "./seed";
 import { CanvasClient } from "./canvas";
 import session from "express-session";
 import { db } from "./db";
-import { users, insertSavedFilterSchema } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { users, assignments, insertSavedFilterSchema } from "@shared/schema";
+import { eq, inArray } from "drizzle-orm";
+import { resolveAssignmentStatus } from "@shared/status-resolver";
 import { z } from "zod";
 import MemoryStore from "memorystore";
 
 const SessionStore = MemoryStore(session);
+
+async function migrateOldStatuses() {
+  const oldStatuses = ["completed", "overdue", "pending", "priority", "in progress"];
+  const staleRecords = await db.select().from(assignments).where(
+    inArray(assignments.status, oldStatuses)
+  );
+
+  if (staleRecords.length === 0) return;
+
+  console.log(`Migrating ${staleRecords.length} assignments to new status system...`);
+
+  for (const a of staleRecords) {
+    const hasSubmission = !!(a.submittedAt || (a.gradedAt && a.score != null));
+    const isGraded = !!(a.score != null && a.gradedAt);
+    const hasReplies = false;
+
+    let dueDate: Date | null = null;
+    try {
+      if (a.dueDate && a.dueDate !== "No date") {
+        const parsed = new Date(a.dueDate);
+        if (!isNaN(parsed.getTime())) dueDate = parsed;
+      }
+    } catch {}
+
+    let isLate = false;
+    if (hasSubmission && a.submittedAt && dueDate) {
+      const submitted = new Date(a.submittedAt);
+      if (!isNaN(submitted.getTime())) {
+        isLate = submitted > dueDate;
+      }
+    }
+
+    const now = new Date();
+    const isPastDue = dueDate ? dueDate < now : false;
+    const isMissing = !hasSubmission && isPastDue && !isGraded;
+
+    const resolved = resolveAssignmentStatus({
+      hasSubmission,
+      isGraded,
+      isMissing,
+      isLate,
+      hasReplies,
+      dueAtIsInFuture: dueDate ? dueDate > now : false,
+    });
+
+    const completed = resolved.status === "graded_on_time" || resolved.status === "graded_late";
+
+    await db.update(assignments)
+      .set({
+        status: resolved.status,
+        completed,
+        hasSubmission,
+        isGraded,
+        isMissing,
+        isLate,
+        hasReplies,
+        assignmentType: "assignment",
+      })
+      .where(eq(assignments.id, a.id));
+  }
+
+  console.log(`Migration complete: ${staleRecords.length} assignments updated.`);
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -27,6 +91,7 @@ export async function registerRoutes(
   );
 
   await seedDatabase();
+  await migrateOldStatuses();
 
   const getDemoUser = async () => {
     const [user] = await db.select().from(users).where(eq(users.username, "demo"));

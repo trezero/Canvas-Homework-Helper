@@ -7,34 +7,64 @@ import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, List, Layou
 
 function StatusBadge({ status }: { status: string }) {
   const variants: Record<string, { className: string; label: string }> = {
-    overdue: {
+    missing: {
       className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/20",
-      label: "OVERDUE",
+      label: "MISSING",
     },
-    priority: {
+    graded_late: {
+      className: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/20",
+      label: "GRADED (LATE)",
+    },
+    submitted_late: {
       className: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-400 dark:border-orange-500/20",
-      label: "PRIORITY",
+      label: "SUBMITTED (LATE)",
     },
-    "in progress": {
-      className: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/20",
-      label: "IN PROGRESS",
-    },
-    pending: {
-      className: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/15 dark:text-slate-400 dark:border-slate-500/20",
-      label: "PENDING",
-    },
-    completed: {
+    graded_on_time: {
       className: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/20",
-      label: "COMPLETED",
+      label: "GRADED",
+    },
+    submitted_pending_grade: {
+      className: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/20",
+      label: "SUBMITTED",
+    },
+    upcoming: {
+      className: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/15 dark:text-slate-400 dark:border-slate-500/20",
+      label: "UPCOMING",
+    },
+    no_status: {
+      className: "bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-500/15 dark:text-gray-400 dark:border-gray-500/20",
+      label: "\u2014",
     },
   };
 
-  const v = variants[status.toLowerCase()] || variants.pending;
+  const v = variants[status.toLowerCase()] || variants.no_status;
 
   return (
     <Badge variant="outline" className={`text-[10px] font-semibold tracking-wider ${v.className} no-default-active-elevate`}>
       {v.label}
     </Badge>
+  );
+}
+
+function SecondaryBadges({ assignment }: { assignment: Assignment }) {
+  return (
+    <>
+      {assignment.isLate && (
+        <Badge variant="outline" className="text-[9px] font-medium tracking-wider bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20 no-default-active-elevate" data-testid={`badge-late-${assignment.id}`}>
+          Late
+        </Badge>
+      )}
+      {assignment.hasReplies && (
+        <Badge variant="outline" className="text-[9px] font-medium tracking-wider bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 no-default-active-elevate" data-testid={`badge-replied-${assignment.id}`}>
+          Replied
+        </Badge>
+      )}
+      {assignment.isGraded && assignment.score != null && assignment.pointsPossible != null && (
+        <Badge variant="outline" className="text-[9px] font-medium tracking-wider bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 no-default-active-elevate" data-testid={`badge-score-${assignment.id}`}>
+          {assignment.score}/{assignment.pointsPossible}
+        </Badge>
+      )}
+    </>
   );
 }
 
@@ -45,11 +75,13 @@ type ViewMode = "list" | "grouped";
 const PAGE_SIZE = 15;
 
 const statusOrder: Record<string, number> = {
-  overdue: 0,
-  priority: 1,
-  "in progress": 2,
-  pending: 3,
-  completed: 4,
+  missing: 0,
+  submitted_late: 1,
+  graded_late: 2,
+  submitted_pending_grade: 3,
+  upcoming: 4,
+  graded_on_time: 5,
+  no_status: 6,
 };
 
 function parseDateForSort(dateStr: string): number {
@@ -88,8 +120,8 @@ function CourseGroupedView({ assignments }: { assignments: Assignment[] }) {
 
     const result: CourseGroup[] = [];
     map.forEach((items, subject) => {
-      const overdue = items.filter((a) => a.status === "overdue").length;
-      const completed = items.filter((a) => a.completed).length;
+      const overdue = items.filter((a) => a.status === "missing").length;
+      const completed = items.filter((a) => a.status === "graded_on_time" || a.status === "graded_late").length;
       const scored = items.filter((a) => a.score != null && a.pointsPossible != null && a.pointsPossible > 0);
       const avgScore = scored.length > 0
         ? Math.round(scored.reduce((acc, a) => acc + ((a.score! / a.pointsPossible!) * 100), 0) / scored.length)
@@ -126,7 +158,7 @@ function CourseGroupedView({ assignments }: { assignments: Assignment[] }) {
                 <div className="flex items-center gap-3 mt-1 flex-wrap">
                   <span className="text-xs text-muted-foreground">{group.total} assignments</span>
                   {group.overdue > 0 && (
-                    <span className="text-xs font-medium text-red-600 dark:text-red-400">{group.overdue} overdue</span>
+                    <span className="text-xs font-medium text-red-600 dark:text-red-400">{group.overdue} missing</span>
                   )}
                   <span className="text-xs text-muted-foreground">{group.completed} completed</span>
                   {group.avgScore !== null && (
@@ -161,7 +193,12 @@ function CourseGroupedView({ assignments }: { assignments: Assignment[] }) {
                     {group.assignments.map((a) => (
                       <tr key={a.id} className="border-b border-border/20 last:border-0 hover-elevate" data-testid={`row-grouped-assignment-${a.id}`}>
                         <td className="py-2.5 px-4 font-medium text-sm">{a.courseName}</td>
-                        <td className="py-2.5 px-4"><StatusBadge status={a.status} /></td>
+                        <td className="py-2.5 px-4">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <StatusBadge status={a.status} />
+                            <SecondaryBadges assignment={a} />
+                          </div>
+                        </td>
                         <td className="py-2.5 px-4 text-muted-foreground text-sm">{a.dueDate}</td>
                         <td className="py-2.5 px-4 text-right font-medium text-sm">
                           {a.score != null && a.pointsPossible != null
@@ -344,7 +381,10 @@ export function DeadlinesTable({
                       {assignment.subject}
                     </td>
                     <td className="py-3.5 px-4">
-                      <StatusBadge status={assignment.status} />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <StatusBadge status={assignment.status} />
+                        <SecondaryBadges assignment={assignment} />
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-muted-foreground">
                       {assignment.dueDate}

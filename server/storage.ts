@@ -133,11 +133,17 @@ export class DatabaseStorage implements IStorage {
   async getPriorities(userId: string): Promise<PriorityItem[]> {
     const allAssignments = await this.getAssignments(userId);
     const incomplete = allAssignments
-      .filter((a) => !a.completed)
+      .filter((a) => a.status !== "graded_on_time" && a.status !== "graded_late")
       .sort((a, b) => {
-        const statusOrder: Record<string, number> = { overdue: 0, priority: 1, "in progress": 2, pending: 3 };
-        const oa = statusOrder[a.status.toLowerCase()] ?? 4;
-        const ob = statusOrder[b.status.toLowerCase()] ?? 4;
+        const statusOrder: Record<string, number> = {
+          missing: 0,
+          submitted_late: 1,
+          submitted_pending_grade: 2,
+          upcoming: 3,
+          no_status: 4,
+        };
+        const oa = statusOrder[a.status] ?? 5;
+        const ob = statusOrder[b.status] ?? 5;
         if (oa !== ob) return oa - ob;
         return b.weight - a.weight;
       });

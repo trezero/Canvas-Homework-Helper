@@ -1,0 +1,71 @@
+Your task is to implement data structures and logic that, for each assignment, derive a single primary status plus some secondary flags from Canvas‑style labels such as “Missing”, “Late”, “Graded”, “Replies”, and the raw data returned by the LMS.
+​
+
+Overall requirements
+For every assignment, compute these core booleans:
+
+has_submission: true if the student has any submission (discussion reply, quiz submission, file upload, etc.).
+​
+
+is_graded: true if a score or grade exists for that student’s submission.
+
+is_missing: true if the LMS marks it as “Missing” or equivalent (typically due date passed and no submission).
+
+is_late: true if there is a submission after the due date and the LMS labels it “Late”.
+​
+
+has_replies: true if this is a discussion‑type assignment and there is at least one reply from the student.
+​
+
+Using those booleans, derive a single primary status string per assignment so that my UI never shows contradictory labels.
+
+In addition to status, preserve all the raw flags so I can show secondary chips/badges (e.g., “Replies”, “9 pts”, “Late”) in the UI.
+
+Status enum and priority rules
+Implement a status resolver that outputs one of these values:
+
+missing – Due date passed, no submission, and LMS marks it missing.
+
+graded_late – Submission exists, marked late, and graded.
+
+submitted_late – Submission exists and late, but not yet graded.
+
+graded_on_time – Submission exists, on time, graded.
+
+submitted_pending_grade – Submission exists, on time, not yet graded.
+
+upcoming – No submission yet, due date in the future, not marked missing.
+
+no_status – Fallback if none of the above apply (should be rare; treat as a safe default).
+
+Apply the following deterministic priority rules when multiple flags are true:
+
+If is_missing is true and has_submission is false, status = "missing". This should override other considerations.
+
+Else if has_submission and is_late and is_graded, status = "graded_late".
+
+Else if has_submission and is_late and not is_graded, status = "submitted_late".
+
+Else if has_submission and not is_late and is_graded, status = "graded_on_time".
+
+Else if has_submission and not is_late and not is_graded, status = "submitted_pending_grade".
+
+Else if not has_submission, not is_missing, and due date is in the future, status = "upcoming".
+
+Else, status = "no_status" as a conservative fallback.
+
+Make sure the logic is mutually exclusive and ordered so exactly one status is chosen for every assignment.
+
+Handling secondary labels like “Replies”, “Graded”, “Late”, “Missing”
+Use status for the primary chip/badge my UI will show (e.g., “Missing”, “Graded (Late)”, “Upcoming”).
+
+Use the raw flags (has_submission, is_graded, is_missing, is_late, has_replies) for secondary badges. Examples:
+
+If status = "graded_late", show primary “Late” or “Graded (Late)” and secondary values like points/score.
+
+If status = "missing", show “Missing” as primary, do not show “Graded” or “Submitted”.
+
+If has_replies is true and the assignment is a discussion, show a “Replies” or “Replied” secondary badge regardless of the primary status.
+​
+
+The key rule: never present conflicting chips such as “Missing” and “Graded” at the same time. The primary status determines the semantics; secondary chips are purely informational.
