@@ -41,12 +41,14 @@ function CourseMultiSelect({
   courses: string[];
 }) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
+        setSearch("");
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -60,6 +62,10 @@ function CourseMultiSelect({
       onChange([...selected, course]);
     }
   };
+
+  const filtered = search
+    ? courses.filter((c) => c.toLowerCase().includes(search.toLowerCase()))
+    : courses;
 
   const label =
     selected.length === 0
@@ -79,39 +85,82 @@ function CourseMultiSelect({
         data-testid="select-course-filter"
       >
         <span className="truncate text-sm">{label}</span>
-        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        <ChevronDown className={`ml-2 h-4 w-4 shrink-0 opacity-50 transition-transform ${open ? "rotate-180" : ""}`} />
       </Button>
       {open && (
-        <div className="absolute z-50 mt-1 w-[calc(100vw-2rem)] sm:w-[240px] max-w-[280px] rounded-md border border-border bg-popover p-1 shadow-md max-h-[280px] overflow-y-auto right-0 sm:right-auto sm:left-0">
-          <button
-            className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-            onClick={() => {
-              onChange([]);
-              setOpen(false);
-            }}
-            data-testid="option-course-all"
-          >
-            <span className={`mr-2 flex h-4 w-4 items-center justify-center ${selected.length === 0 ? "opacity-100" : "opacity-0"}`}>
-              <Check className="h-4 w-4" />
-            </span>
-            All Courses
-          </button>
-          {courses.map((course) => {
-            const isSelected = selected.includes(course);
-            return (
+        <div className="absolute z-50 mt-1.5 w-[280px] sm:w-[320px] rounded-lg border border-border bg-popover shadow-lg left-0 sm:left-0 right-auto overflow-hidden">
+          <div className="p-2 border-b border-border/50">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search courses..."
+                className="h-8 pl-8 text-sm bg-background/50"
+                autoFocus
+                data-testid="input-course-search"
+              />
+            </div>
+          </div>
+
+          <div className="max-h-[240px] overflow-y-auto p-1.5">
+            <button
+              className="relative flex w-full cursor-pointer select-none items-center rounded-md px-2.5 py-2 text-sm outline-none hover:bg-accent/80 transition-colors"
+              onClick={() => {
+                onChange([]);
+                setOpen(false);
+                setSearch("");
+              }}
+              data-testid="option-course-all"
+            >
+              <span className={`mr-2.5 flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors ${selected.length === 0 ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30"}`}>
+                {selected.length === 0 && <Check className="h-2.5 w-2.5" />}
+              </span>
+              <span className="font-medium">All Courses</span>
+              <span className="ml-auto text-xs text-muted-foreground">{courses.length}</span>
+            </button>
+
+            {filtered.length > 0 && (
+              <div className="my-1 h-px bg-border/50" />
+            )}
+
+            {filtered.map((course) => {
+              const isSelected = selected.includes(course);
+              return (
+                <button
+                  key={course}
+                  className={`relative flex w-full cursor-pointer select-none items-center rounded-md px-2.5 py-2 text-sm outline-none transition-colors ${isSelected ? "bg-primary/10 dark:bg-primary/5" : "hover:bg-accent/80"}`}
+                  onClick={() => toggleCourse(course)}
+                  data-testid={`option-course-${course}`}
+                >
+                  <span className={`mr-2.5 flex h-4 w-4 items-center justify-center rounded border-2 transition-colors ${isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"}`}>
+                    {isSelected && <Check className="h-2.5 w-2.5" />}
+                  </span>
+                  <span className={`text-left leading-snug ${isSelected ? "font-medium" : ""}`}>{course}</span>
+                </button>
+              );
+            })}
+
+            {filtered.length === 0 && (
+              <p className="text-center text-sm text-muted-foreground py-4">No courses found</p>
+            )}
+          </div>
+
+          {selected.length > 0 && (
+            <div className="border-t border-border/50 px-2.5 py-2 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{selected.length} selected</span>
               <button
-                key={course}
-                className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                onClick={() => toggleCourse(course)}
-                data-testid={`option-course-${course}`}
+                className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                onClick={() => {
+                  onChange([]);
+                  setSearch("");
+                }}
+                data-testid="button-clear-courses"
               >
-                <span className={`mr-2 flex h-4 w-4 items-center justify-center rounded border ${isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"}`}>
-                  {isSelected && <Check className="h-3 w-3" />}
-                </span>
-                <span className="truncate">{course}</span>
+                Clear all
               </button>
-            );
-          })}
+            </div>
+          )}
         </div>
       )}
     </div>
