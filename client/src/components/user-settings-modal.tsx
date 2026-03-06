@@ -39,6 +39,7 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: UserLike | undefined;
+  onCanvasSettingsSaved?: () => void;
 };
 
 type TestResult = {
@@ -49,7 +50,7 @@ type TestResult = {
   message?: string;
 };
 
-export function UserSettingsModal({ open, onOpenChange, user }: Props) {
+export function UserSettingsModal({ open, onOpenChange, user, onCanvasSettingsSaved }: Props) {
   const { toast } = useToast();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -106,18 +107,23 @@ export function UserSettingsModal({ open, onOpenChange, user }: Props) {
         schoolAffiliation,
         canvasBaseUrl,
       };
-      if (canvasApiToken && canvasApiToken !== "••••••••••••••••") {
+      const hasNewCanvasToken = canvasApiToken && canvasApiToken !== "••••••••••••••••";
+      if (hasNewCanvasToken) {
         payload.canvasApiToken = canvasApiToken;
       }
       if (testResult?.accountType) {
         payload.accountType = testResult.accountType;
       }
       await apiRequest("PATCH", "/api/user", payload);
+      return { canvasSettingsChanged: !!(canvasBaseUrl && (hasNewCanvasToken || user?.hasCanvasToken)) };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({ title: "Settings saved", description: "Your profile has been updated." });
       onOpenChange(false);
+      if (result.canvasSettingsChanged && onCanvasSettingsSaved) {
+        onCanvasSettingsSaved();
+      }
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });

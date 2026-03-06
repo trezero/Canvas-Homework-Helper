@@ -30,6 +30,8 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { user: authUser } = useAuth();
 
+  const [firstTimeChecked, setFirstTimeChecked] = useState(false);
+
   const { data: user, isLoading: userLoading } = useQuery<User & { hasCanvasToken?: boolean }>({
     queryKey: ["/api/user"],
   });
@@ -49,6 +51,14 @@ export default function Dashboard() {
   const { data: savedFilters } = useQuery<SavedFilter[]>({
     queryKey: ["/api/saved-filters"],
   });
+
+  useEffect(() => {
+    if (firstTimeChecked || userLoading || !user) return;
+    setFirstTimeChecked(true);
+    if (!user.canvasConnected && !user.hasCanvasToken) {
+      setSettingsOpen(true);
+    }
+  }, [user, userLoading, firstTimeChecked]);
 
   const applyFilter = useCallback((filter: SavedFilter) => {
     const f = filter.filters as { course?: string; status?: string[]; hideLocked?: boolean; searchQuery?: string };
@@ -324,6 +334,9 @@ export default function Dashboard() {
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
         user={user}
+        onCanvasSettingsSaved={() => {
+          syncMutation.mutate(user?.observedStudentId || undefined);
+        }}
       />
 
       <ObserverStudentPicker
