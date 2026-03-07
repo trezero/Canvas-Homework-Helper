@@ -147,7 +147,8 @@ export class CanvasClient {
   private deriveFlags(
     submission: any,
     dueAt: Date | null,
-    now: Date
+    now: Date,
+    isLocked: boolean
   ): {
     status: string;
     completed: boolean;
@@ -159,6 +160,7 @@ export class CanvasClient {
     isMissing: boolean;
     isLate: boolean;
     hasReplies: boolean;
+    isLocked: boolean;
   } {
     let score: number | null = null;
     let submittedAt: string | null = null;
@@ -209,6 +211,7 @@ export class CanvasClient {
       isLate,
       hasReplies,
       dueAtIsInFuture,
+      isLocked,
     });
 
     const completed = resolved.status === "graded_on_time" || resolved.status === "graded_late";
@@ -224,6 +227,7 @@ export class CanvasClient {
       isMissing,
       isLate,
       hasReplies,
+      isLocked,
     };
   }
 
@@ -257,7 +261,7 @@ export class CanvasClient {
             const dueAt = ca.due_at ? new Date(ca.due_at) : null;
             const now = new Date();
 
-            const derived = this.deriveFlags(sub, dueAt, now);
+            const derived = this.deriveFlags(sub, dueAt, now, !!ca.locked_for_user);
             const assignmentType = this.deriveAssignmentType(ca);
 
             allAssignments.push({
@@ -282,6 +286,7 @@ export class CanvasClient {
               isMissing: derived.isMissing,
               isLate: derived.isLate,
               hasReplies: derived.hasReplies,
+              isLocked: derived.isLocked,
             });
 
             if (sub.score != null && ca.points_possible) {
@@ -307,7 +312,7 @@ export class CanvasClient {
             const dueAt = ca.due_at ? new Date(ca.due_at) : null;
             const now = new Date();
 
-            const derived = this.deriveFlags(submission, dueAt, now);
+            const derived = this.deriveFlags(submission, dueAt, now, !!ca.locked_for_user);
             const assignmentType = this.deriveAssignmentType(ca);
 
             allAssignments.push({
@@ -332,6 +337,7 @@ export class CanvasClient {
               isMissing: derived.isMissing,
               isLate: derived.isLate,
               hasReplies: derived.hasReplies,
+              isLocked: derived.isLocked,
             });
           }
         }

@@ -81,14 +81,14 @@ export class DatabaseStorage implements IStorage {
       ? Math.round(scored.reduce((acc, a) => acc + (a.score! / a.pointsPossible!) * 100, 0) / scored.length * 10) / 10
       : null;
 
-    const missingCount = allAssignments.filter((a) => a.status === "missing").length;
+    const missingCount = allAssignments.filter((a) => a.status === "missing" || a.status === "missing_available").length;
     const pendingGradeCount = allAssignments.filter((a) => a.status === "submitted_pending_grade" || a.status === "submitted_late").length;
 
     let focusCourse: string | null = null;
     let focusCourseReason: string | null = null;
 
     const missingByCourse: Record<string, number> = {};
-    allAssignments.filter((a) => a.status === "missing").forEach((a) => {
+    allAssignments.filter((a) => a.status === "missing" || a.status === "missing_available").forEach((a) => {
       missingByCourse[a.subject] = (missingByCourse[a.subject] || 0) + 1;
     });
 
@@ -198,7 +198,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSavedFilter(filter: InsertSavedFilter): Promise<SavedFilter> {
-    const [created] = await db.insert(savedFilters).values(filter).returning();
+    const [created] = await db.insert(savedFilters).values(filter as any).returning();
     return created;
   }
 

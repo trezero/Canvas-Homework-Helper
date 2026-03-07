@@ -10,6 +10,10 @@ function StatusBadgeLarge({ status }: { status: string }) {
       className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/20",
       label: "Missing",
     },
+    missing_available: {
+      className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/20",
+      label: "Missing (Available)",
+    },
     graded_late: {
       className: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/20",
       label: "Graded (Late)",
@@ -68,8 +72,8 @@ function ScoreDisplay({ score, pointsPossible }: { score: number | null; pointsP
   const pct = Math.round((score / pointsPossible) * 100);
   const color = pct >= 90 ? "text-emerald-600 dark:text-emerald-400"
     : pct >= 80 ? "text-blue-600 dark:text-blue-400"
-    : pct >= 70 ? "text-amber-600 dark:text-amber-400"
-    : "text-red-600 dark:text-red-400";
+      : pct >= 70 ? "text-amber-600 dark:text-amber-400"
+        : "text-red-600 dark:text-red-400";
 
   return (
     <div className="bg-muted/50 rounded-lg p-4 text-center" data-testid="section-score">
@@ -111,8 +115,8 @@ export function AssignmentDetailModal({
 
   const typeLabel = assignment.assignmentType === "quiz" ? "Quiz"
     : assignment.assignmentType === "discussion" ? "Discussion"
-    : assignment.assignmentType === "announcement" ? "Announcement"
-    : "Assignment";
+      : assignment.assignmentType === "announcement" ? "Announcement"
+        : "Assignment";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -167,7 +171,7 @@ export function AssignmentDetailModal({
             value={assignment.pointsPossible != null ? String(assignment.pointsPossible) : null}
           />
 
-          {assignment.status === "missing" && (
+          {(assignment.status === "missing" || assignment.status === "missing_available") && (
             <div className="mt-3 flex items-start gap-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg px-3.5 py-3">
               <AlertTriangle className="w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-700 dark:text-red-400">

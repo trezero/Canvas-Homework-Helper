@@ -7,11 +7,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-export type StatusFilter = "all" | "missing" | "submitted_late" | "graded_late" | "graded_on_time" | "submitted_pending_grade" | "upcoming" | "no_status";
+export type StatusFilter = "all" | "missing" | "missing_available" | "submitted_late" | "graded_late" | "graded_on_time" | "submitted_pending_grade" | "upcoming" | "no_status";
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "missing", label: "Missing" },
+  { value: "missing", label: "Missing (All)" },
+  { value: "missing_available", label: "Missing (Available)" },
   { value: "submitted_late", label: "Submitted (Late)" },
   { value: "graded_late", label: "Graded (Late)" },
   { value: "graded_on_time", label: "Graded" },
@@ -71,8 +72,8 @@ function CourseMultiSelect({
     selected.length === 0
       ? "All Courses"
       : selected.length === 1
-      ? selected[0]
-      : `${selected.length} courses`;
+        ? selected[0]
+        : `${selected.length} courses`;
 
   return (
     <div className="relative" ref={ref}>

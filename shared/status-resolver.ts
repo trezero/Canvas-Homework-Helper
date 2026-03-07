@@ -10,14 +10,14 @@ export type StatusResolverOutput = {
 };
 
 export function resolveAssignmentStatus(input: StatusResolverInput): StatusResolverOutput {
-  const { hasSubmission, isGraded, isMissing, isLate, hasReplies, dueAtIsInFuture } = input;
+  const { hasSubmission, isGraded, isMissing, isLate, hasReplies, dueAtIsInFuture, isLocked } = input;
 
-  const flags: AssignmentFlags = { hasSubmission, isGraded, isMissing, isLate, hasReplies };
+  const flags: AssignmentFlags = { hasSubmission, isGraded, isMissing, isLate, hasReplies, isLocked };
 
   let status: AssignmentStatusEnum;
 
   if (isMissing && !hasSubmission) {
-    status = "missing";
+    status = isLocked ? "missing" : "missing_available";
   } else if (hasSubmission && isLate && isGraded) {
     status = "graded_late";
   } else if (hasSubmission && isLate && !isGraded) {

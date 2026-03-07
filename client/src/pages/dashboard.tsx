@@ -204,7 +204,8 @@ export default function Dashboard() {
       a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.notes && a.notes.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCourse = courseFilter.length === 0 || courseFilter.includes(a.subject);
-    const matchesStatus = statusFilter === "all" || a.status.toLowerCase() === statusFilter;
+    const matchesStatus = statusFilter === "all" ||
+      (statusFilter === "missing" ? (a.status === "missing" || a.status === "missing_available") : a.status === statusFilter);
     const matchesLocked = !hideLocked || (a.status !== "graded_on_time" && a.status !== "graded_late");
     return matchesSearch && matchesCourse && matchesStatus && matchesLocked;
   });
@@ -239,8 +240,8 @@ export default function Dashboard() {
                   {metrics && metrics.missingCount === 0
                     ? "All assignments are on track — keep it up!"
                     : metrics && metrics.averageScore != null && metrics.averageScore >= 85
-                    ? `${metrics.missingCount} assignment${metrics.missingCount !== 1 ? "s" : ""} to catch up on`
-                    : "Here's your progress at a glance."}
+                      ? `${metrics.missingCount} assignment${metrics.missingCount !== 1 ? "s" : ""} to catch up on`
+                      : "Here's your progress at a glance."}
                 </p>
               )}
             </div>

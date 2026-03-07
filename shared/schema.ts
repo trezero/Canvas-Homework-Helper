@@ -8,6 +8,7 @@ import { users } from "./models/auth";
 
 export const ASSIGNMENT_STATUSES = [
   "missing",
+  "missing_available",
   "graded_late",
   "submitted_late",
   "graded_on_time",
@@ -24,6 +25,7 @@ export type AssignmentFlags = {
   isMissing: boolean;
   isLate: boolean;
   hasReplies: boolean;
+  isLocked: boolean;
 };
 
 export const assignments = pgTable("assignments", {
@@ -49,6 +51,7 @@ export const assignments = pgTable("assignments", {
   isMissing: boolean("is_missing").notNull().default(false),
   isLate: boolean("is_late").notNull().default(false),
   hasReplies: boolean("has_replies").notNull().default(false),
+  isLocked: boolean("is_locked").notNull().default(false),
 });
 
 export const updateUserProfileSchema = z.object({

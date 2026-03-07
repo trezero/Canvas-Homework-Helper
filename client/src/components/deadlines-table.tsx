@@ -12,6 +12,10 @@ function StatusBadge({ status }: { status: string }) {
       className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/20",
       label: "MISSING",
     },
+    missing_available: {
+      className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/20",
+      label: "MISSING (AVAILABLE)",
+    },
     graded_late: {
       className: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/20",
       label: "GRADED (LATE)",
@@ -77,6 +81,7 @@ const PAGE_SIZE = 15;
 
 const statusOrder: Record<string, number> = {
   missing: 0,
+  missing_available: 0,
   submitted_late: 1,
   graded_late: 2,
   submitted_pending_grade: 3,
@@ -121,7 +126,7 @@ function CourseGroupedView({ assignments, onSelect }: { assignments: Assignment[
 
     const result: CourseGroup[] = [];
     map.forEach((items, subject) => {
-      const overdue = items.filter((a) => a.status === "missing").length;
+      const overdue = items.filter((a) => a.status === "missing" || a.status === "missing_available").length;
       const completed = items.filter((a) => a.status === "graded_on_time" || a.status === "graded_late").length;
       const scored = items.filter((a) => a.score != null && a.pointsPossible != null && a.pointsPossible > 0);
       const avgScore = scored.length > 0
