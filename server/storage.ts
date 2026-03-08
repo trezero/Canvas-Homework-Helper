@@ -7,9 +7,12 @@ import {
   type PriorityItem,
   type SavedFilter,
   type InsertSavedFilter,
+  type AllowanceSettings,
+  type InsertAllowanceSettings,
   users,
   assignments,
   savedFilters,
+  allowanceSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -28,6 +31,8 @@ export interface IStorage {
   updateSavedFilter(id: string, data: Partial<SavedFilter>): Promise<SavedFilter | undefined>;
   deleteSavedFilter(id: string): Promise<void>;
   setDefaultFilter(userId: string, filterId: string): Promise<SavedFilter | undefined>;
+  getAllowanceSettings(studentId: string): Promise<AllowanceSettings | undefined>;
+  upsertAllowanceSettings(settings: InsertAllowanceSettings): Promise<AllowanceSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -215,6 +220,25 @@ export class DatabaseStorage implements IStorage {
     await db.update(savedFilters).set({ isDefault: false }).where(eq(savedFilters.userId, userId));
     const [updated] = await db.update(savedFilters).set({ isDefault: true }).where(and(eq(savedFilters.id, filterId), eq(savedFilters.userId, userId))).returning();
     return updated;
+  }
+
+  async getAllowanceSettings(studentId: string): Promise<AllowanceSettings | undefined> {
+    const [settings] = await db.select().from(allowanceSettings).where(eq(allowanceSettings.studentId, studentId));
+    return settings;
+  }
+
+  async upsertAllowanceSettings(settingsData: InsertAllowanceSettings): Promise<AllowanceSettings> {
+    const existing = await this.getAllowanceSettings(settingsData.studentId);
+    if (existing) {
+      const [updated] = await db.update(allowanceSettings)
+        .set(settingsData)
+        .where(eq(allowanceSettings.studentId, settingsData.studentId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(allowanceSettings).values(settingsData as any).returning();
+      return created;
+    }
   }
 }
 

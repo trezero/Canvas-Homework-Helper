@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { CanvasClient } from "./canvas";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import { db } from "./db";
-import { assignments, insertSavedFilterSchema } from "@shared/schema";
+import { assignments, insertSavedFilterSchema, insertAllowanceSettingsSchema } from "@shared/schema";
+import { calculateSuggestedMinAllowance } from "@shared/allowance-calculator";
 import { eq, inArray } from "drizzle-orm";
 import { resolveAssignmentStatus } from "@shared/status-resolver";
 import { z } from "zod";
@@ -30,7 +31,7 @@ async function migrateOldStatuses() {
         const parsed = new Date(a.dueDate);
         if (!isNaN(parsed.getTime())) dueDate = parsed;
       }
-    } catch {}
+    } catch { }
 
     let isLate = false;
     if (hasSubmission && a.submittedAt && dueDate) {
@@ -50,6 +51,7 @@ async function migrateOldStatuses() {
       isMissing,
       isLate,
       hasReplies,
+      isLocked: false,
       dueAtIsInFuture: dueDate ? dueDate > now : false,
     });
 
@@ -401,6 +403,65 @@ export async function registerRoutes(
       const updated = await storage.setDefaultFilter(userId, req.params.id as string);
       if (!updated) return res.status(404).json({ message: "Filter not found" });
       res.json(updated);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.get("/api/allowance-settings", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const studentId = user.accountType === "observer" ? user.observedStudentId : user.canvasUserId;
+      if (!studentId) {
+        return res.status(400).json({ message: "No linked student account." });
+      }
+
+      const settings = await storage.getAllowanceSettings(studentId);
+      res.json(settings || { isEnabled: false });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.post("/api/allowance-settings", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const studentId = user.accountType === "observer" ? user.observedStudentId : user.canvasUserId;
+      if (!studentId) {
+        return res.status(400).json({ message: "No linked student account." });
+      }
+
+      const parsed = insertAllowanceSettingsSchema.safeParse({ ...req.body, userId, studentId: String(studentId) });
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
+      }
+
+      const settings = await storage.upsertAllowanceSettings(parsed.data);
+      res.json(settings);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.get("/api/suggested-min-allowance", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const maxStr = req.query.maxAllowance as string;
+      const maxAllowance = parseFloat(maxStr);
+      if (isNaN(maxAllowance)) {
+        return res.status(400).json({ message: "Invalid maxAllowance parameter" });
+      }
+
+      const currentAssignments = await storage.getAssignments(userId);
+      const suggestedMin = calculateSuggestedMinAllowance(currentAssignments, maxAllowance);
+
+      res.json({ suggestedMinAllowance: suggestedMin, missingCount: currentAssignments.filter(a => a.isMissing || ['missing', 'missing_available'].includes(a.status)).length });
     } catch (e: any) {
       res.status(500).json({ message: e.message });
     }
