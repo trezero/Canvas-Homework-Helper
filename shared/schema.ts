@@ -127,3 +127,21 @@ export const insertSavedFilterSchema = createInsertSchema(savedFilters).omit({
 
 export type SavedFilter = typeof savedFilters.$inferSelect;
 export type InsertSavedFilter = z.infer<typeof insertSavedFilterSchema>;
+
+export const allowanceSettings = pgTable("allowance_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  studentId: varchar("student_id").notNull(),
+  isEnabled: boolean("is_enabled").notNull().default(false),
+  minAllowance: real("min_allowance").notNull().default(50),
+  maxAllowance: real("max_allowance").notNull().default(100),
+  periodWeeks: integer("period_weeks").notNull().default(1),
+  periodStartDate: timestamp("period_start_date").notNull().defaultNow(),
+});
+
+export const insertAllowanceSettingsSchema = createInsertSchema(allowanceSettings).omit({
+  id: true,
+});
+
+export type AllowanceSettings = typeof allowanceSettings.$inferSelect;
+export type InsertAllowanceSettings = z.infer<typeof insertAllowanceSettingsSchema>;

@@ -9,16 +9,18 @@ import { PriorityFocus } from "@/components/priority-focus";
 import { SemesterProgress } from "@/components/semester-progress";
 import { UserSettingsModal } from "@/components/user-settings-modal";
 import { ObserverStudentPicker } from "@/components/observer-student-picker";
+import { AllowanceSettingsModal } from "@/components/allowance-settings-modal";
 import { SearchBar, type StatusFilter } from "@/components/search-bar";
 import { SavedFiltersBar } from "@/components/saved-filters-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Settings, LogOut, GraduationCap, ChevronsUpDown } from "lucide-react";
+import { RefreshCw, Settings, LogOut, GraduationCap, ChevronsUpDown, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [allowanceSettingsOpen, setAllowanceSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [courseFilter, setCourseFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -296,6 +298,15 @@ export default function Dashboard() {
                 {switchStudentMutation.isPending ? "Loading..." : "Switch"}
                 <ChevronsUpDown className="w-3.5 h-3.5 opacity-60" />
               </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-shrink-0 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30 dark:border dark:border-emerald-500/30"
+                onClick={() => setAllowanceSettingsOpen(true)}
+              >
+                <Wallet className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Allowance</span>
+              </Button>
             </div>
           )}
         </header>
@@ -367,6 +378,13 @@ export default function Dashboard() {
         observees={pendingObservees}
         onStudentSelected={handleStudentSelected}
       />
+
+      {user?.accountType === "observer" && (
+        <AllowanceSettingsModal
+          open={allowanceSettingsOpen}
+          onOpenChange={setAllowanceSettingsOpen}
+        />
+      )}
     </div>
   );
 }
